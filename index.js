@@ -3,13 +3,11 @@ const User = require('./Models/User')
 const Notification = require("./Models/Notification").Notification
 const express = require("express")
 const bodyParser = require("body-parser")
-const request = require('request');
+const NetworkManager = require("./Managers/NetworkManager")
 const userRoutes = require("./Routes/userRoutes")
 const PORT = "4018"
 
 var MongoClient = require('mongodb').MongoClient;
-
-
 
 let app = express()
 
@@ -58,37 +56,27 @@ else {
 function startNotificationService() {
 
     // 1. Grab the current rates from coin-market-cap
-    let url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?CMC_PRO_API_KEY=5f08a8f7-e9e0-4a12-8ee2-8e7b87b046f9&start=1&limit=2000&convert=USD"
-    request(url, { json: true }, (err, res, body) => {
-         if (err) { return console.log(err); }
+    NetworkManager.getCoinsRates( (coinsData) => {
 
         let coinsRates = {}
          
-        let dataArray = res.body.data
-        dataArray.forEach( (coin) => {
+        coinsData.forEach( (coin) => {
             coinsRates[coin.id] = coin.quote.USD.price
         })
 
-        
 
-        User.find( (err,users) => {
+
+        User.find( (err,users) => {  // Grab all users from mongoose.
+
+            // Iterate trough all of them and for each user, loop trough he's notifications.
+            // If the current rate is bigger or smaller (depending on the 'direction' property) then the endRate
+            // then send a notification  
 
             users.forEach( (user) => {
 
                 user.notifications.forEach( (notification) => {
 
-                    let coinRate = coinsRates[notification.assetId]
-
-                    if (notification.direction == "up") {
-                        if(coinRate >= notification.endRate) {
-                            console.log("send notification")
-                        }
-                    }
-                    else {
-                        if(coinRate <= notification.endRate) {
-                            console.log("send notification")
-                        }
-                    }
+                    sendNotificationIfNeeded(user,notification,coinsRates)
 
                 } )
 
@@ -96,12 +84,28 @@ function startNotificationService() {
 
         })
 
-    });
 
-    // Grab all users from mongoose.
-    // Iterate trough all of them and for each user, loop trough he's notifications.
-    // If the current rate is bigger or smaller (depending on the 'direction' property) then the endRate
-    // then send a notification  
+    } )
+
+
+
+
+
+}
+
+function sendNotificationIfNeeded(user,notification,coinsRates) {
+    let coinRate = coinsRates[notification.assetId]
+
+    if (notification.direction == "up") {
+        if(coinRate >= notification.endRate) {
+            console.log("send notification")
+        }
+    }
+    else {
+        if(coinRate <= notification.endRate) {
+            console.log("send notification")
+        }
+    }
 }
 
 function renamingWithMongoDB() {
