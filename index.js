@@ -5,6 +5,7 @@ const express = require("express")
 const bodyParser = require("body-parser")
 const NetworkManager = require("./Managers/NetworkManager")
 const userRoutes = require("./Routes/userRoutes")
+const PushNotificationManager = require("./Managers/PushNotificationManager")
 const PORT = "4018"
 
 var MongoClient = require('mongodb').MongoClient;
@@ -18,8 +19,12 @@ mongoose.connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true ,use
     if (err) throw err
 
     console.log("successfuly connected to mongodb trough mongoose")
-    startNotificationService()
+
+    // startNotificationService()
 })
+
+
+PushNotificationManager.sendNotification("ac345383e79a1b64fab579a28e225030376b34e8df8eced0beebd9b2e775bc18", "Bitcoin reached $12000")
 
 // MongoClient.connect(mongodb, function(err, db) {
 //     if (err) throw err;
