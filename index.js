@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+var redis = require('redis');
 const User = require('./Models/User')
 const Notification = require("./Models/Notification").Notification
 const express = require("express")
@@ -23,8 +24,94 @@ mongoose.connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true ,use
     // startNotificationService()
 })
 
+// redis-16468.c44.us-east-1-2.ec2.cloud.redislabs.com:16468
+const redisClient = redis.createClient({port: 16468, host:"redis-16468.c44.us-east-1-2.ec2.cloud.redislabs.com",
+auth_pass: "1xlJwJ1y9W359HyheAWWuXqNiKouQyzv",                                                                                                                                                           
+})
 
-PushNotificationManager.sendNotification("ac345383e79a1b64fab579a28e225030376b34e8df8eced0beebd9b2e775bc18", "Bitcoin reached $12000")
+redisClient.on("ready", () => {
+    
+    console.log("redis is ready for use")
+    
+    for(i=50; i<100; i++ ){
+        addPairToPairsMap(`BTC/USD${i}`,"CCCAGG",redisClient)
+        .then( (result) => {
+    
+            console.log(result)
+    
+        })
+        .catch( (err) => {
+            console.log(err)
+        } )
+    }
+
+
+
+    // redisClient.set("Car","Volvo", (err,reply) => {
+    //     console.log(reply)
+    // })
+ 
+    redisClient.get('Car', function(err, reply) {
+        console.log(reply);
+    });
+
+
+
+    // redisClient.hmset('frameworks', 'javascript', 'AngularJS', 'css', 'Bootstrap', 'node', 'Express');
+
+    redisClient.hgetall('frameworks', function(err, object) {
+        console.log(object);
+    });
+
+
+    // redisClient.rpush(['frameworks list', 'angularjs', 'backbone'], function(err, reply) {
+    //     console.log(reply); //prints 2
+    //     // process.exit()
+    // });
+
+
+
+    // redisClient.exists('frameworks: javascript', function(err, reply) {
+    //     if (reply === 1) {
+    //         console.log('exists');
+    //     } else {
+    //         console.log('doesn\'t exist');
+    //     }
+    // });
+
+   
+    // addItemToBasket(456,1,redisClient)
+    // .then((obj) => {
+
+    //     console.log(`${obj} added to basket`)
+    //     process.exit()
+    // })
+    // .catch(err => {
+    //     console.log(err)
+    //     process.exit()
+
+    // })
+
+
+
+    // removeItem(123,1,redisClient)
+    // .then((number) => {
+    //     console.log(number)
+    //     process.exit()
+
+    // })
+    // .catch(err => {
+    //     console.log(err)
+    //     process.exit()
+
+    // })
+
+})
+redisClient.on('error', function (err) {
+    console.log('Something went wrong ' + err);
+});
+
+// PushNotificationManager.sendNotification("ac345383e79a1b64fab579a28e225030376b34e8df8eced0beebd9b2e775bc18", "Bitcoin reached $12000")
 
 // MongoClient.connect(mongodb, function(err, db) {
 //     if (err) throw err;
@@ -101,16 +188,16 @@ function startNotificationService() {
 function sendNotificationIfNeeded(user,notification,coinsRates) {
     let coinRate = coinsRates[notification.assetId]
 
-    if (notification.direction == "up") {
-        if(coinRate >= notification.endRate) {
-            console.log("send notification")
-        }
-    }
-    else {
-        if(coinRate <= notification.endRate) {
-            console.log("send notification")
-        }
-    }
+    // if (notification.direction == "up") {
+    //     if(coinRate >= notification.endRate) {
+    //         console.log("send notification")
+    //     }
+    // }
+    // else {
+    //     if(coinRate <= notification.endRate) {
+    //         console.log("send notification")
+    //     }
+    // }
 }
 
 function renamingWithMongoDB() {
@@ -124,7 +211,7 @@ function renamingWithMongoDB() {
               
               let notifications = []
               user.notifications.forEach( (notification,index) => {
-                 
+
                   notifications.push(  
                       {"assetId": notification.assetId,
                       "startRate": notification.startAmount,
@@ -148,6 +235,39 @@ function renamingWithMongoDB() {
           db.close()
   
       });
+
+}
+
+
+async function addPairToPairsMap(pair,exchange, client) {
+
+    // check if the vale exists for key
+    return new Promise((resolve, reject) => {
+    
+        client.hget(`pairs: ${exchange}`,pair, (getErr,object) => {
+            
+            if (getErr) reject(getErr)
+            if(!object) {
+
+                client.hset(`pairs: ${exchange}`,pair,1 , (setErr,newObject) => {
+                    if (setErr) reject('object not set')
+                    console.log(`new key/value pair added: ${newObject}`)
+                    resolve(newObject)
+                })
+
+            }
+            else {
+                client.hincrby(`pairs: ${exchange}`,pair,1, (err, number) => {
+
+                    if (err) reject(err)
+                    resolve(number)
+                })
+            }
+
+
+        })
+
+    })
 
 }
 

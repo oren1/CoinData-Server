@@ -5,7 +5,7 @@ const createUser = (req,res) => {
 
     const user = new User(req.body)
 
-    user.save((err,newUser) => {
+    user.save( (err,newUser) => {
 
         if (err) res.send(err)
         res.json(newUser)
@@ -15,30 +15,12 @@ const createUser = (req,res) => {
 
 const createNotification = (req,res) => {
 
-    User.findById(req.body.userId, (err,userDoc) => {
-    
-
+    const notification = new Notification(req.body)
+   
+    notification.save( (err,doc) => {
         if (err) res.send(err)
-
-        if (userDoc == null) res.send({message: "user not exists or userId not sent"})
-        
-        else {
-            const notification = new Notification(req.body)
-
-            userDoc.notifications.push(notification)
-    
-            userDoc.save((err,updatedUser) => {
-    
-                if (err) res.send(err)
-                res.json(updatedUser)
-        
-            })
-        }
-
-        
-
+        res.json(doc)
     })
-
 }
 
 const updateUserToken = (req,res) => {
