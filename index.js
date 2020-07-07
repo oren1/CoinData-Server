@@ -1,14 +1,14 @@
 const mongoose = require('mongoose')
 var redis = require('redis');
 const User = require('./Models/User')
-const { LimitNotification, NotificationDirection, NotificationStatus }= require("./Models/Notification")
+const { LimitNotification, NotificationDirection, NotificationStatus } = require("./Models/Notification")
 const express = require("express")
 const bodyParser = require("body-parser")
 const NetworkManager = require("./Managers/NetworkManager")
 const userRoutes = require("./Routes/userRoutes")
 const PushNotificationManager = require("./Managers/PushNotificationManager")
 const PORT = "4018"
-const config = require("./config")
+const config = require("./config/configuration")
 const RedisManager = require("./Managers/RedisManager")
 var MongoClient = require('mongodb').MongoClient;
 
@@ -17,55 +17,60 @@ const mongodb = "mongodb+srv://dbuser:atlas123456@cluster0-rhuii.mongodb.net/Use
 let app = express()
 
 
-startServer()
+// startServer()
 
+mongoose.connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true ,useFindAndModify: false, useCreateIndex: true })
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  
+    console.log("mongoose connected")
 
-async function startServer() {
+});
 
-    try {
-        
-        await mongoose.connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true ,useFindAndModify: false, useCreateIndex: true })
-        let redisResult = await connectToRedis()
+const redisClient = redis.createClient({port: 16468, host:"redis-16468.c44.us-east-1-2.ec2.cloud.redislabs.com",
+auth_pass: "1xlJwJ1y9W359HyheAWWuXqNiKouQyzv",                                                                                                                                                           
+})
 
-        connectToCryptoCompareWebSocket()
+redisClient.on("ready", () => { 
+    console.log(`redis connected`)
 
-
-    } catch (error) {
-        console.log(`startServer err: ${error}` )
-    }
-      
-}
-
-
-async function connectToRedis() {
-   
-    return new Promise( (resolve,reject) => {
-
-    const redisClient = redis.createClient({port: 16468, host:"redis-16468.c44.us-east-1-2.ec2.cloud.redislabs.com",
-    auth_pass: "1xlJwJ1y9W359HyheAWWuXqNiKouQyzv",                                                                                                                                                           
-    })
-
-
-
-    redisClient.on("ready", () => { 
-        console.log(`redis connected`)
-        config.db.redisClient = redisClient
-
-        // var somePairs = ["BTC~USD","ETH~USD","XRP~USD"]   
-        // for(let pair of somePairs) {
-        //     addPairToPairsMap(pair, "CCCAGG",redisClient)
-        // }
-        
-        resolve("connected")
-    })
-
-    redisClient.on('error', function (err) {
-        console.log('redis error:' + err)
-        reject(err)
-    });
+    // var somePairs = ["BTC~USD","ETH~USD","XRP~USD"]   
+    // for(let pair of somePairs) {
+    //     addPairToPairsMap(pair, "CCCAGG",redisClient)
+    // }
 
     })
-}
+
+redisClient.on('error', function (err) {
+    console.log('redis error:' + err)
+});
+
+config.db.redisClient = redisClient
+
+const redisManager = RedisManager(config.db.redisClient)
+
+
+// this is where you paste your api key
+var apiKey = "dd470f89924f82d5f63d337a001d096c550841337788ec74602293c285964060";
+const WebSocket = require('ws');
+const ccStreamer = new WebSocket('wss://streamer.cryptocompare.com/v2?api_key=' + apiKey);
+
+ccStreamer.on('open', function open() {
+
+    redisManager.subscribeToExistingSubscriptions(ccStreamer)
+
+});
+
+ccStreamer.on('message', function incoming(data) {
+    
+    console.log(data);
+
+    limitNotificationLogic(data)
+    repeatedLimitNotificationLogic(data)
+
+});
+
 
 async function connectToCryptoCompareWebSocket() {
 
@@ -154,7 +159,6 @@ config.db.ccStreamer = ccStreamer
 return
 
 }
-
 function limitNotificationLogic(tick) {
     LimitNotification.find({exchange: tick.MARKET, fsym: tick.FROMSYMBOL, tsym:tick.TOSYMBOL, repeated:false}, function (err, notifications) {
 
@@ -245,7 +249,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
-userRoutes(app)
+
+userRoutes(app,redisManager)
 
 app.get("/", (req,res) => {
 

@@ -1,5 +1,5 @@
-let db = {
-    
-}
+module.exports = {
+    db:{
 
-module.export = db
+    }
+}

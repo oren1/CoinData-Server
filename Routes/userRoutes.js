@@ -1,25 +1,30 @@
-const { createUser,
-        createNotification,
-        updateUserToken,
-        updateNotification,
-        deleteNotification } = require("../Controllers/userController")
+// const { createUser,
+//         createNotification,
+//         updateUserToken,
+//         updateNotification,
+//         deleteNotification } = require("../Controllers/userController")
 
-const routes = (App) => {
+const UserController = require("../Controllers/userController")
+let userController = null
+
+const routes = (App,redisManager) => {
+
+    userController = UserController(redisManager)
 
     App.route("/createUser")
-    .post(createUser)
+    .post(userController.createUser)
 
     App.route("/createNotification/:notificationType")
-    .post(createNotification)
+    .post(userController.createNotification)
 
     App.route("/updateUserToken")
-    .post(updateUserToken)
+    .post(userController.updateUserToken)
 
     App.route("/updateNotification")
-    .post(updateNotification)
+    .post(userController.updateNotification)
 
-    App.route("/deleteNotification")
-    .post(deleteNotification)
+    App.route("/deleteNotification/:notificationType")
+    .post(userController.deleteNotification)
 }
 
 module.exports = routes

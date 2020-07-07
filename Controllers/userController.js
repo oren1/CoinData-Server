@@ -1,7 +1,6 @@
 const User = require("../Models/User")
-const config = require("../config")
 const {LimitNotification, IntervalNotification, NotificationType} = require("../Models/Notification")
-const RedisManager = require("../Managers/RedisManager")
+let redisManager = null
 
 const createUser = (req,res) => {
 
@@ -19,7 +18,6 @@ const createNotification = (req,res) => {
    
     let notificationType = req.params.notificationType
 
-
     switch (notificationType) {
         case NotificationType.LIMIT_NOTIFICATION: {
     
@@ -27,7 +25,15 @@ const createNotification = (req,res) => {
        
             limitNotification.save( (err,doc) => {
                 if (err) res.send(err)
-                res.json(doc)
+
+                let pair = doc.fsym + "~"+ doc.tsym
+                redisManager.addPairToPairsMap(pair,doc.exchange)
+                .then( (value) =>{
+                    res.json(doc)
+                })
+                .catch( (err) => {
+                    res.send(err)
+                })
             })
     
             break;
@@ -85,10 +91,23 @@ const deleteNotification = (req,res) => {
     switch (notificationType) {
         case NotificationType.LIMIT_NOTIFICATION: {
     
-            LimitNotification.findOneAndDelete({_id: req.body.id}, (err,doc) => {
+            LimitNotification.findOneAndDelete({_id: req.body.id}, (err,notification) => {
 
                 if (err) res.send(err)
-                res.json(doc)
+
+                if(!notification) res.send({error: "notification not exists"})
+                var pair = notification.fsym +"~"+notification.tsym
+
+                redisManager.removePairFromExchange(pair,notification.exchange)
+                .then( fieldCount => {
+                    if(fieldCount == 0) {
+                        
+                    }
+                })
+                .catch( err => {
+                    console.log(fieldCount)
+                })
+                res.json(notification)
             })
     
             break;
@@ -106,12 +125,20 @@ const deleteNotification = (req,res) => {
 
 
 
-module.exports = {
+module.exports = (_redisManager) => {
 
-    createUser,
-    createNotification,
-    updateUserToken,
-    updateNotification,
-    deleteNotification
+    if(!_redisManager) throw new Error("Missing redis manager")
+
+    redisManager = _redisManager
+
+    return {
+
+        createUser,
+        createNotification,
+        updateUserToken,
+        updateNotification,
+        deleteNotification
+        
+    }
 
 }
