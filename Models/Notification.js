@@ -7,8 +7,8 @@ const NotificationDirection = {
 }
 
 const NotificationStatus = {
-  ENABLED: 'enabeld',
-  DISABELD: 'disabeld'
+  ENABLED: 1,
+  DISABLED: 0
 }
 
 const NotificationType = {
@@ -16,28 +16,40 @@ const NotificationType = {
   INTERVAL_NOTIFICATION: 'intervalNotification'
 }
 
+const RepeatedState = {
+  LIMIT_BASE: 'limitBase',
+  WAITING_LIMIT_BASE: 'waitingLimitBase',
+}
+
 var NotificationSchema = new Schema({
   userId: {type: String, required: true},
   exchange: {type: String, required: true},
   name: {type: String, required: true},
-  assetId: {type: String, required:true},
   fsym: {type: String, required:true},
   tsym: {type: String, required:true},
-  status: {type: String, required: true},
+  status: {type: Number, required: true, default: NotificationStatus.ENABLED},
   dateCreated: { type: Date, default: Date.now }
-});
+})
 
+NotificationSchema.methods.getPair = function() {
+  return this.fsym +"~"+ this.tsym
+}
+
+NotificationSchema.methods.getSubscriptionString = function() {
+  return this.exchange +"~"+ this.fsym +"~"+ this.tsym
+}
 var Notification = mongoose.model('Notification', NotificationSchema);
-
-
 
 
 var limitNotificationSchema = new mongoose.Schema({
   limit: {type: Number, required:true},
   direction: {type: String, required:true},
-  repeated: {type: Boolean, required:true}
+  repeated: {type: Boolean, required:true},
+  repeatedState: {type: String, default:RepeatedState.LIMIT_BASE}
 })
+
 limitNotificationSchema.index({exchange: 1, fsym:1, tsym:1, repeated: 1})
+
 var LimitNotification = Notification.discriminator('LimitNotification', limitNotificationSchema)
 
 
@@ -45,7 +57,7 @@ var LimitNotification = Notification.discriminator('LimitNotification', limitNot
 
   var IntervalNotification = Notification.discriminator('IntervalNotification',
   new mongoose.Schema({
-    startTime: { type: Date, required: true },
+    startTime: { type: Number, required: true , default: Date.now() },
     interval: { type: Number, required: true }
   }) )
 
@@ -53,10 +65,12 @@ var LimitNotification = Notification.discriminator('LimitNotification', limitNot
 module.exports = {
 
     NotificationSchema,
+    Notification,
     LimitNotification,
     IntervalNotification,
     NotificationDirection,
     NotificationStatus,
+    RepeatedState,
     NotificationType
 
 }

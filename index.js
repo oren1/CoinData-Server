@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 var redis = require('redis');
 const User = require('./Models/User')
-const { LimitNotification, NotificationDirection, NotificationStatus } = require("./Models/Notification")
+const { LimitNotification, NotificationDirection, NotificationStatus, IntervalNotification, Notification , RepeatedState} = require("./Models/Notification")
 const express = require("express")
 const bodyParser = require("body-parser")
 const NetworkManager = require("./Managers/NetworkManager")
@@ -14,150 +14,187 @@ var MongoClient = require('mongodb').MongoClient;
 
 const mongodb = "mongodb+srv://dbuser:atlas123456@cluster0-rhuii.mongodb.net/Users?retryWrites=true&w=majority"
 
-let app = express()
+let redisManager = null
+
+initiateServer()
 
 
-// startServer()
+async function initiateServer() {
 
-mongoose.connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true ,useFindAndModify: false, useCreateIndex: true })
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  
-    console.log("mongoose connected")
+  try {
 
-});
+    let app = express()
+    
 
-const redisClient = redis.createClient({port: 16468, host:"redis-16468.c44.us-east-1-2.ec2.cloud.redislabs.com",
-auth_pass: "1xlJwJ1y9W359HyheAWWuXqNiKouQyzv",                                                                                                                                                           
-})
+    await mongoose.connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true ,useFindAndModify: false, useCreateIndex: true })
+    console.log("mongoose")
+    const redisClient = await createRedisClient()
+    const ccStreamer = await createCryptoCompareStreamer()
+    ccStreamer.on('message', function incoming(data) {
+       
+    // {
+    //     TYPE: 5,
+    //     MARKET: "CCCAGG",
+    //     FROMSYMBOL: "BTC",
+    //     TOSYMBOL: "USD",
+    //     FLAGS: 4,
+    //     PRICE: 9287.39,
+    //     LASTUPDATE: 1594203730,
+    //     MEDIAN: 9289,
+    //     LASTVOLUME: 0.02077,
+    //     LASTVOLUMETO: 192.8712585,
+    //     LASTTRADEID: 72033924,
+    //     VOLUMEDAY: 12686.421452815894,
+    //     VOLUMEDAYTO: 117751995.373741,
+    //     VOLUME24HOUR: 25740.369137112,
+    //     VOLUME24HOURTO: 238574938.52683517,
+    //     OPENDAY: 9257.3,
+    //     HIGHDAY: 9321.59,
+    //     LOWDAY: 9236.9,
+    //     OPEN24HOUR: 9250.05,
+    //     HIGH24HOUR: 9322.06,
+    //     LOW24HOUR: 9201.52,
+    //     LASTMARKET: "BTCAlpha",
+    //     VOLUMEHOUR: 358.99167771000094,
+    //     VOLUMEHOURTO: 3332665.889176361,
+    //     OPENHOUR: 9279.96,
+    //     HIGHHOUR: 9291.91,
+    //     LOWHOUR: 9279.04,
+    //     TOPTIERVOLUME24HOUR: 23771.441133582004,
+    //     TOPTIERVOLUME24HOURTO: 220359399.57789007,
+    //  }
 
-redisClient.on("ready", () => { 
-    console.log(`redis connected`)
 
-    // var somePairs = ["BTC~USD","ETH~USD","XRP~USD"]   
-    // for(let pair of somePairs) {
-    //     addPairToPairsMap(pair, "CCCAGG",redisClient)
-    // }
+    let tick = JSON.parse(data)
+
+    if(tick.TYPE == 5) {
+        console.log(tick);
+
+        if (tick.PRICE) { // If the price didn't change than the PRICE is not included in the json object
+
+            let pair = tick.FROMSYMBOL +"~"+ tick.TOSYMBOL
+            let exchange = tick.MARKET
+            let price = `${tick.PRICE}`
+        
+            redisManager.addPriceToPriceMap(pair, exchange, price)
+        }
+
+        updateSubscriptionsIfNeeded(tick)
+        limitNotificationLogic(tick)
+        repeatedLimitNotificationLogic(tick)
+    }
 
     })
 
-redisClient.on('error', function (err) {
-    console.log('redis error:' + err)
-});
-
-config.db.redisClient = redisClient
-
-const redisManager = RedisManager(config.db.redisClient)
-
-
-// this is where you paste your api key
-var apiKey = "dd470f89924f82d5f63d337a001d096c550841337788ec74602293c285964060";
-const WebSocket = require('ws');
-const ccStreamer = new WebSocket('wss://streamer.cryptocompare.com/v2?api_key=' + apiKey);
-
-ccStreamer.on('open', function open() {
-
-    redisManager.subscribeToExistingSubscriptions(ccStreamer)
-
-});
-
-ccStreamer.on('message', function incoming(data) {
+    config.db.redisClient = redisClient
+    redisManager = RedisManager(config.db.redisClient, ccStreamer)
     
-    console.log(data);
+    await buildRedisMap(ccStreamer)
+    
+    app.use(bodyParser.urlencoded({ extended: false }))
+    
+    // parse application/json
+    app.use(bodyParser.json())
+    
+    
+    userRoutes(app,redisManager,ccStreamer)
+    
+    app.get("/", (req,res) => {
+    
+        res.send(`First get request on port ${process.env.PORT || PORT}`)
+    
+    })
+    
+    if (process.env.PORT) {
+        app.listen(process.env.PORT, () => {
+    
+            console.log(`Your server is running on port ${process.env.PORT}`)
+        })
+    }
+    else {
+        app.listen(PORT,"127.0.0.1", () => {
+    
+            console.log(`Your server is running on port ${PORT}`)
+        })
+    }
 
-    limitNotificationLogic(data)
-    repeatedLimitNotificationLogic(data)
-
-});
+    setInterval(timeIntervalNotificationLogic,60000)
 
 
-async function connectToCryptoCompareWebSocket() {
+  } catch (error) {
+      
+        console.log(error)
+  }  
 
-// this is where you paste your api key
-var apiKey = "dd470f89924f82d5f63d337a001d096c550841337788ec74602293c285964060";
-const WebSocket = require('ws');
-var ccStreamer = new WebSocket('wss://streamer.cryptocompare.com/v2?api_key=' + apiKey);
+}
+async function createRedisClient() {
 
-ccStreamer.on('open', function open() {
-  
-    // loop trough all of the pairs currently in redis and send them subscription request
-    config.db.redisClient.lrange("exchanges",0,-1, (err, exchanges) => {
+    return new Promise( (resolve,reject) => {
 
-        if (err) console.log(err)
+        let redisClient = redis.createClient({port: 16468, host:"redis-16468.c44.us-east-1-2.ec2.cloud.redislabs.com",
+        auth_pass: "1xlJwJ1y9W359HyheAWWuXqNiKouQyzv",                                                                                                                                             
+        })
 
-        var subs = []
-
-        exchanges.forEach( (exchange) => {
-
-            config.db.redisClient.hkeys(`pairs: ${exchange}`, (err, pairs) => {
-               
-                if (err) console.log(err)
-
-                pairs.forEach( (pair) => {
-
-                    var sub = `5~${exchange}~${pair}`
-
-                    subs.push(sub)
-
-                })
-
+        redisClient.on("ready", () => { 
+            console.log(`redis connected`)
+            resolve(redisClient)
+        })
         
-                var subRequest = {
-                    "action": "SubAdd",
-                    "subs": subs
-                }
-        
-                ccStreamer.send(JSON.stringify(subRequest));
+        redisClient.on('error', function (err) {
+            console.log('redis error:' + err)
+            reject(err)
+        });
 
-            })
+    })
+}
+async function createCryptoCompareStreamer() {
 
+    return new Promise( (resolve, reject) => {
+
+        var apiKey = "dd470f89924f82d5f63d337a001d096c550841337788ec74602293c285964060";
+        let WebSocket = require('ws');
+        let ccStreamer = new WebSocket('wss://streamer.cryptocompare.com/v2?api_key=' + apiKey)
+
+        ccStreamer.on('error', (err) => {
+            reject(err)
+        })
+        ccStreamer.on('open', function open() {
+
+            console.log("ccStreamer connected")
+            resolve(ccStreamer)
         })
 
 
-
     })
-
-});
-
-ccStreamer.on('message', function incoming(data) {
+}
+async function buildRedisMap(ccStreamer) {
     
-    // 1. query the mongodb and fetch all notifications that match the fsym and tsym in the data
-    // 2. loop trough the notifications and see if any notification needs to be fired.
-    // if a notification needs to be fired then grab the user with the userId to get the token 
-    // and fire the notification  
-    
-/*
-    {
-        TYPE: '5',
-        MARKET: 'CCCAGG',
-        FROMSYMBOL: 'BTC',
-        TOSYMBOL: 'USD',
-        FLAGS: 2,
-        PRICE: 9238.79,
-        LASTUPDATE: 1593669110,
-        LASTTRADEID: '467912527',
-        VOLUMEDAY: 3266.632854976875,
-        VOLUMEDAYTO: 30215774.459492996,
-        VOLUME24HOUR: 28515.896399454803,
-        VOLUME24HOURTO: 263078581.81318298,
-        VOLUMEHOUR: 708.0631935290904,
-        VOLUMEHOURTO: 6552061.318247891,
-        TOPTIERVOLUME24HOUR: 26715.490558604797,
-        TOPTIERVOLUME24HOURTO: 246414059.60023063
-      }
-*/
+    // 1. Remove  'pairs' and 'price' keys
+    // 2. Grab all of the enabled notifications
+    // 3. Loop trough the notifications and for each notification add it to the redis hash and subscribe if 
+    // needed
+   
+    try {
+        let numberOfKeysRemoved = await redisManager.removeAllKeys()
+        let notifications = await Notification.find({status: 1}).exec()
+        let promises = []
 
-        let tick = JSON.parse(data)
-        limitNotificationLogic(tick)
+        for (notification of notifications) {
+            //await redisManager.addPairToPairsMap(notification.getPair(),notification.exchange)
+            await redisManager.addToSubscriptions(notification.getSubscriptionString())
+            // subsribe to crypto compare 
+            var subRequest = {
+                 "action": "SubAdd",
+                 "subs": [`5~${notification.getSubscriptionString()}`]
+            }
+            ccStreamer.send(JSON.stringify(subRequest)) 
 
+        }
 
-});
+    } catch (error) {
+        console.log(error)
 
-config.db.ccStreamer = ccStreamer
-
-return
-
+    }
 }
 function limitNotificationLogic(tick) {
     LimitNotification.find({exchange: tick.MARKET, fsym: tick.FROMSYMBOL, tsym:tick.TOSYMBOL, repeated:false}, function (err, notifications) {
@@ -166,7 +203,7 @@ function limitNotificationLogic(tick) {
 
         notifications.forEach( (notification) => {
 
-            if (notification.status == NotificationStatus.DISABELD) return
+            if (notification.status == NotificationStatus.DISABLED) return
 
             if (notification.direction == NotificationDirection.BIGGER_THAN) {
 
@@ -195,192 +232,119 @@ function repeatedLimitNotificationLogic(tick) {
         if (err) console.log(err)
 
         notifications.forEach( (notification) => {
+            
+            if (notification.status == NotificationStatus.DISABLED) return
 
-            if (notification.status == NotificationStatus.DISABELD)  {
-                if (notification.direction == NotificationDirection.BIGGER_THAN) {
+            if (notification.repeatedState == RepeatedState.WAITING_LIMIT_BASE)  {
+                    if (notification.direction == NotificationDirection.BIGGER_THAN) {
 
-                    if(tick.PRICE < notification.limit) {
-                        notification.status = NotificationStatus.ENABLED
-                        notification.save()
+                        if(tick.PRICE < notification.limit) {
+                            notification.repeatedState = RepeatedState.LIMIT_BASE
+                            notification.save()
+                        }
                     }
-                }
-                else if (notification.direction == NotificationDirection.SMALLER_THAN){
-                    if(tick.PRICE > notification.limit) {
-                        notification.status = NotificationStatus.ENABLED
-                        notification.save()
-                    }
+                    else if (notification.direction == NotificationDirection.SMALLER_THAN){
+                       
+                        if(tick.PRICE > notification.limit) {
+                            notification.repeatedState = RepeatedState.LIMIT_BASE
+                            notification.save()                        }
             }
             }
-            else if (notification.status == NotificationStatus.ENABLED) {
-                if (notification.direction == NotificationDirection.BIGGER_THAN) {
+            else if (notification.repeatedState == RepeatedState.LIMIT_BASE) {
+                    if (notification.direction == NotificationDirection.BIGGER_THAN) {
 
-                    if(tick.PRICE > notification.limit) {
-                        
-                            let message = `${notification.fsym} price is now more than ${notification.limit}`
-                            sendPriceLimitNotification(notification,message)
-
+                        if(tick.PRICE > notification.limit) {
+                            sendRepeatedPriceLimitNotification(notification)
+                        }
                     }
-                }
-                else {
-                    if(tick.PRICE < notification.limit) {
+                    else {
 
-                        let message = `${notification.fsym} price is now less than ${notification.limit}`
-                        sendPriceLimitNotification(notification,message)
-
-                }
+                        if(tick.PRICE < notification.limit) {
+                            sendRepeatedPriceLimitNotification(notification)
+                    }
             }
 
             }
         })
 
-    });
+    })
+}
+function timeIntervalNotificationLogic() {
+
+    // Fetch the time interval notifications, loop trough all of them and for each one check if now - startDate
+    // is bigger than time interval
+    console.log("timeIntervalNotificationLogic")
+    IntervalNotification.find({status: 1}, (err, notifications) => {
+        if (err) 
+        notifications.forEach( notification => {
+
+            let timeElapsed = Date.now() - notification.startTime
+
+            if (timeElapsed > notification.interval) {
+               
+                User.findById(notification.userId, (err,user) => {
+
+                    let pair = notification.getPair()
+                    redisManager.getPrice(pair,notification.exchange).
+                    then( price => {
+                        let message = `${notification.fsym}/${notification.tsym} is now ${price}`
+                        PushNotificationManager.sendNotification(user.token,message)
+                    })
+                    .catch( err => {
+                        console.log(err)
+                    })
+
+                })
+
+                notification.startTime = Date.now()
+                notification.save()
+            }
+
+        })
+    })
+}
+function sendRepeatedPriceLimitNotification(notification) {
+  
+    let message = null
+    if (notification.direction == NotificationDirection.BIGGER_THAN) { 
+        message = `${notification.fsym} price is now more than ${notification.limit}`
+    }
+    else {
+       message = `${notification.fsym} price is now less than ${notification.limit}`
+
+    }
+    notification.repeatedState = RepeatedState.WAITING_LIMIT_BASE
+    notification.save()
+
+    User.findById(notification.userId, (err,user) => { 
+
+        if (err) return console.log("user not found")
+        PushNotificationManager.sendNotification(user.token,message)
+    })
+
 }
 function sendPriceLimitNotification(notification,message) {
-
+       
     User.findById(notification.userId, (err,user) => {
-        PushNotificationManager.sendNotification(user.token,message)
-        notification.status = NotificationStatus.DISABELD
-        notification.save()
-    })
-}
-
-app.use(bodyParser.urlencoded({ extended: false }))
-
-// parse application/json
-app.use(bodyParser.json())
-
-
-userRoutes(app,redisManager)
-
-app.get("/", (req,res) => {
-
-    res.send(`First get request on port ${process.env.PORT || PORT}`)
-
-})
-
-if (process.env.PORT) {
-    app.listen(process.env.PORT, () => {
-
-        console.log(`Your server is running on port ${process.env.PORT}`)
-    })
-}
-else {
-    app.listen(PORT,"127.0.0.1", () => {
-
-        console.log(`Your server is running on port ${PORT}`)
-    })
-}
-
-
-function renamingWithMongoDB() {
-
-    var dbo = db.db("Users");
-
-    dbo.collection("users").find({}).toArray(function(err, users) {
-        if (err) throw err;
-  
-          users.forEach((user) => {
-              
-              let notifications = []
-              user.notifications.forEach( (notification,index) => {
-
-                  notifications.push(  
-                      {"assetId": notification.assetId,
-                      "startRate": notification.startAmount,
-                      "percentage": notification.percentage,
-                      "endRate": notification.endAmount,
-                      "direction": notification.direction,
-                      "dateCreated": notification.dateCreated })
-             
-                  })
-  
-  
-              let update = { $set: { notifications: notifications }}   
-              
-              dbo.collection("users").updateOne({_id: user._id}, update,(err,result) => {
-                  if (err) throw err
-                  console.log(result)
-              })
-              
-          })
-  
-          db.close()
-  
-      });
-
-}
-
-function addExchange(exchange, client) {
-
-    client.lpush("exchanges",exchange, (err, number) => {
-        if (err) console.log(err)
-        console.log(`number of elements added: ${number}`)
-    })
-}
-
-async function addPairToPairsMap(pair,exchange, client) {
-
-
-    // check if the vale exists for key
-    return new Promise((resolve, reject) => {
-    
-        client.hget(`pairs: ${exchange}`,pair, (getErr,object) => {
-            
-            if (getErr) reject(getErr)
-            if(!object) {
-
-                client.hset(`pairs: ${exchange}`,pair,1 , (setErr,newObject) => {
-                    if (setErr) reject('object not set')
-                    console.log(`new key/value pair added: ${newObject}`)
-                    resolve(newObject)
-                })
-
-            }
-            else {
-                client.hincrby(`pairs: ${exchange}`,pair,1, (err, number) => {
-
-                    if (err) reject(err)
-                    resolve(number)
-                })
-            }
-
-
-        })
-
-    })
-
-}
-
- async function doSomeLogic() {
-    console.log('successfuly connected')
-
-    console.log("creating new user")
-    const user = new User({token:"atoken"})
-    const userDoc = await user.save()
-    console.log(`new user created: ${userDoc}`)
-
-
-    console.log("before calling find")
-    User.findById(userDoc._id, (err, user) => {
+       
+        if (err) return console.log(`couldn't find user with id: ${notification.userId}`)
+        notification.status = NotificationStatus.DISABLED
         
-        if (err) throw err
+        notification.save( (err, notification) => {
 
-        console.log(`User: ${user}`)
-
-        const notification = new Notification({ assetId:1, 
-                                                startAmount:12345,
-                                                percentage:10,
-                                                endAmount: 22345,
-                                                direction:"up",
-                                                userId:user._id})
-
-                                                user.notifications.push(notification)
-                                                user.save((err,newUser) => {
-
-                console.log(`notification sent ${newUser}`)
-        
+            if (err) return console.log("save error")
+            PushNotificationManager.sendNotification(user.token,message)
+            //redisManager.removePairFromExchange(notification.getPair(), notification.exchange)
         })
-
     })
+}
+function updateSubscriptionsIfNeeded(tick) {
 
+    Notification.countDocuments({exchange: tick.MARKET, fsym: tick.FROMSYMBOL, tsym: tick.TOSYMBOL, status: 1}, (err, count) => {
+        if (count == 0) {
+            let subscriptionString = tick.MARKET +"~"+ tick.FROMSYMBOL + "~" + tick.TOSYMBOL
+            redisManager.removeFromSubscriptions(subscriptionString)
+            redisManager.removePrice(tick.MARKET,tick.FROMSYMBOL,tick.TOSYMBOL)
+        }
+    })
 }
