@@ -148,9 +148,7 @@ async function createRedisClient() {
 
     return new Promise( (resolve,reject) => {
 
-        let redisClient = redis.createClient({port: 16468, host:"redis-16468.c44.us-east-1-2.ec2.cloud.redislabs.com",
-        auth_pass: "1xlJwJ1y9W359HyheAWWuXqNiKouQyzv",                                                                                                                                             
-        })
+        let redisClient = redis.createClient(redisSettings)
 
         redisClient.on("ready", () => { 
             console.log(`redis connected`)
