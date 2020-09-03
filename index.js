@@ -13,11 +13,23 @@ const RedisManager = require("./Managers/RedisManager")
 var MongoClient = require('mongodb').MongoClient;
 
 let mongodb = "mongodb+srv://dbuser:atlas123456@cluster0-rhuii.mongodb.net/Users?retryWrites=true&w=majority"
+let redisSettings = {
+    port: 16468, 
+    host:"redis-16468.c44.us-east-1-2.ec2.cloud.redislabs.com",
+    auth_pass: "1xlJwJ1y9W359HyheAWWuXqNiKouQyzv",                                                                                                                                             
+}
 
 if (process.env.MONGO_DB_URL) {
     mongodb = process.env.MONGO_DB_URL
 }
 
+if (process.env.REDIS_URL) {
+    redisSettings = {
+        port: process.env.REDIS_PORT, 
+        host: process.env.REDIS_URL,
+        auth_pass: process.env.REDIS_PASS, 
+    }
+}
 
 let redisManager = null
 
