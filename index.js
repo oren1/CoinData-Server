@@ -12,7 +12,12 @@ const config = require("./config/configuration")
 const RedisManager = require("./Managers/RedisManager")
 var MongoClient = require('mongodb').MongoClient;
 
-const mongodb = "mongodb+srv://dbuser:atlas123456@cluster0-rhuii.mongodb.net/Users?retryWrites=true&w=majority"
+let mongodb = "mongodb+srv://dbuser:atlas123456@cluster0-rhuii.mongodb.net/Users?retryWrites=true&w=majority"
+
+if (process.env.MONGO_DB_URL) {
+    mongodb = process.env.MONGO_DB_URL
+}
+
 
 let redisManager = null
 
@@ -275,7 +280,6 @@ function timeIntervalNotificationLogic() {
     // is bigger than time interval
     console.log("timeIntervalNotificationLogic")
     IntervalNotification.find({status: 1}, (err, notifications) => {
-        if (err) 
         notifications.forEach( notification => {
 
             let timeElapsed = Date.now() - notification.startTime
