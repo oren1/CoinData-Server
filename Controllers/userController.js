@@ -12,7 +12,7 @@ const createUser = (req,res) => {
 
     user.save( (err,newUser) => {
 
-        if (err) res.send(err)
+        if (err) res.json(err)
         res.json(newUser)
 
     })
@@ -34,7 +34,7 @@ const createNotification = (req,res) => {
 
             limitNotification.save( async (err, notification) => {
 
-                if(err) res.send(err)
+                if(err) res.json(err)
                 else {
                     try {
                         await addSubscriptionIfNeeded(notification)
@@ -56,7 +56,7 @@ const createNotification = (req,res) => {
             const intervalNotification = new IntervalNotification(req.body)
             intervalNotification.save( async (err,notification) => {
                     
-                if (err) res.send(err)
+                if (err) res.json(err)
                 else {
                     try {
                         await addSubscriptionIfNeeded(notification)
@@ -84,7 +84,7 @@ const updateUserToken = (req,res) => {
 
     User.findOneAndUpdate({_id: req.body.userId}, { token: req.body.token }, {new: true}, (err, userDoc) => {
 
-        if (err) res.send(err)
+        if (err) res.json(err)
         else {
             res.json(userDoc)
         }
@@ -105,7 +105,7 @@ const updateNotificationStatus = async (req,res) => {
 
     Notification.findOneAndUpdate({_id: req.body.id}, {status: req.body.status}, {new: true}, async (err, notification) => {
 
-            if (err) res.send(err)
+            if (err) res.json(err)
 
             if (oldNotification.status == NotificationStatus.DISABLED &&
                 notification.status == NotificationStatus.ENABLED) {
@@ -171,7 +171,7 @@ const updateNotification = async (req,res) => {
 
             IntervalNotification.findOneAndUpdate({_id: req.body.id}, req.body,{ new: true}, async (err, notification) => {
                 
-                if (err) return res.send(err)
+                if (err) return res.json(err)
                 if (!notification) return res.json("not found")
              
                 try {
@@ -198,7 +198,7 @@ const deleteNotification = (req,res) => {
 
     Notification.findOneAndDelete({_id: req.body.id}, (err,notification) => {
 
-        if (err) res.send(err)
+        if (err) res.json(err)
         else {
             res.json(notification)
         }
