@@ -28,7 +28,8 @@ var NotificationSchema = new Schema({
   fsym: {type: String, required:true},
   tsym: {type: String, required:true},
   status: {type: Number, required: true, default: NotificationStatus.ENABLED},
-  dateCreated: { type: Date, default: Date.now }
+  dateCreated: { type: Date, default: Date.now },
+  dateCreatedInMiliseconds: { type: Number, default: Date.now()}
 })
 
 NotificationSchema.methods.getPair = function() {

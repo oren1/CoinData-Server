@@ -211,7 +211,7 @@ const getNotifications = (req,res) => {
 
     Notification.find({userId: req.body.userId}, (err, notifications) => {
         if (err) res.json(err)
-        else res.json(notifications)
+        else res.json({notifications: notifications})
     })
 
 }
