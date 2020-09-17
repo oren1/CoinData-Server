@@ -85,7 +85,7 @@ async function initiateServer() {
     let tick = JSON.parse(data)
 
     if(tick.TYPE == 5) {
-        console.log(tick);
+        // console.log(tick)
 
         if (tick.PRICE) { // If the price didn't change than the PRICE is not included in the json object
 
