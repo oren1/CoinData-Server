@@ -153,6 +153,9 @@ const updateNotification = async (req,res) => {
          
             LimitNotification.findOneAndUpdate({_id: req.body.id}, req.body,{ new: true}, async (err, notification) => {
                 
+                if (err) return res.json(err)
+                if (!notification) return res.json("notification not found")
+
                 try {
                     await addSubscriptionIfNeeded(notification)
                     res.json(notification)
@@ -172,7 +175,7 @@ const updateNotification = async (req,res) => {
             IntervalNotification.findOneAndUpdate({_id: req.body.id}, req.body,{ new: true}, async (err, notification) => {
                 
                 if (err) return res.json(err)
-                if (!notification) return res.json("not found")
+                if (!notification) return res.json("notification not found")
              
                 try {
                     await addSubscriptionIfNeeded(notification)

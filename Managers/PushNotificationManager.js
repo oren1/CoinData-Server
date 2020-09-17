@@ -3,7 +3,7 @@ var path = require("path");
 
 function sendNotification(deviceToken,message) {
 
-  let pathToP8File =  path.resolve("Resources","AuthKey_63GXP94F68.p8")
+  let pathToP8File =  path.resolve("public/Resouces","AuthKey_63GXP94F68.p8")
 
     var options = {
         token: {
