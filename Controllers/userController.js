@@ -172,6 +172,8 @@ const updateNotification = async (req,res) => {
             
         case NotificationType.INTERVAL_NOTIFICATION: {
 
+            req.body.startTime = Date.now()
+            
             IntervalNotification.findOneAndUpdate({_id: req.body.id}, req.body,{ new: true}, async (err, notification) => {
                 
                 if (err) return res.json(err)

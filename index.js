@@ -294,7 +294,7 @@ function timeIntervalNotificationLogic() {
 
             let timeElapsed = Date.now() - notification.startTime
 
-            if (timeElapsed > notification.interval) {
+            if (timeElapsed >= notification.interval) {
                
                 User.findById(notification.userId, (err,user) => {
 

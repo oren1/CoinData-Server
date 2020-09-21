@@ -31,7 +31,8 @@ function sendNotification(deviceToken,message) {
         })
         .catch(err => {
 
-          console.log(`notification result: ${err}`)
+          // console.log(`notification result: ${err}`)
+          console.log(`notification result: ${err.failed}`)
 
         })
 
