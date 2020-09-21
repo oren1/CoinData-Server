@@ -26,13 +26,17 @@ function sendNotification(deviceToken,message) {
 
 
         apnProvider.send(notification, deviceToken).then( (result) => {
+            if (result.failed.length > 0) {
+              console.log(result.failed[0].response)
 
-            console.log(result)
+            }
+            else {
+              console.log(result)
+            }
         })
         .catch(err => {
 
-          // console.log(`notification result: ${err}`)
-          console.log(`notification result: ${err.failed}`)
+          console.log(`notification result: ${err}`)
 
         })
 
