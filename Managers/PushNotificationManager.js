@@ -21,7 +21,7 @@ var options = {
   var apnProvider = new apn.Provider(options)
 
 
-function sendNotification(id,deviceToken,message) {
+function sendNotification(collapseId,deviceToken,message) {
 
         var notification = new apn.Notification();
 
@@ -32,7 +32,7 @@ function sendNotification(id,deviceToken,message) {
         notification.payload = {'key': 'value'}
         notification.topic = "ZZ.ZZBitRate.app"
         notification.priority = 10
-        notification.id = id
+        notification.collapseId = collapseId
 
         apnProvider.send(notification, deviceToken).then( (result) => {
             if (result.failed.length > 0) {

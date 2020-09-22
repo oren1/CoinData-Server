@@ -304,7 +304,7 @@ function timeIntervalNotificationLogic() {
                     redisManager.getPrice(pair,notification.exchange).
                     then( price => {
                         let message = `${notification.fsym}/${notification.tsym} is now ${price}`
-                        let notificationUniqueIdentifier = notification.userId + notification.getSubscriptionString()
+                        let collapseId = notification.userId + "-" + notification.getSubscriptionString()
                         PushNotificationManager.sendNotification(notificationUniqueIdentifier,user.token,message)
                     })
                     .catch( err => {
@@ -350,8 +350,8 @@ function sendPriceLimitNotification(notification,message) {
         notification.save( (err, notification) => {
 
             if (err) return console.log("save error")
-            let notificationUniqueIdentifier = notification.userId + notification.getSubscriptionString()
-            PushNotificationManager.sendNotification(notificationUniqueIdentifier,user.token,message)
+            let collapseId = notification.userId + "-" + notification.getSubscriptionString()
+            PushNotificationManager.sendNotification(collapseId,user.token,message)
             //redisManager.removePairFromExchange(notification.getPair(), notification.exchange)
         })
     })
