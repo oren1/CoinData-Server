@@ -4,7 +4,7 @@ var path = require("path");
 let pathToP8File =  path.resolve("public","AuthKey_63GXP94F68.p8")
 
 let production = false
-if (process.env.NODE_ENV) {
+if (process.env.NODE_ENV == "production") {
   production = true
 }
 
