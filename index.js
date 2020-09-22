@@ -101,7 +101,6 @@ async function initiateServer() {
 
         updateSubscriptionsIfNeeded(tick)
         limitNotificationLogic(tick)
-        repeatedLimitNotificationLogic(tick)
     }
 
     })
@@ -305,7 +304,8 @@ function timeIntervalNotificationLogic() {
                     redisManager.getPrice(pair,notification.exchange).
                     then( price => {
                         let message = `${notification.fsym}/${notification.tsym} is now ${price}`
-                        PushNotificationManager.sendNotification(user.token,message)
+                        let notificationUniqueIdentifier = notification.userId + notification.getSubscriptionString()
+                        PushNotificationManager.sendNotification(notificationUniqueIdentifier,user.token,message)
                     })
                     .catch( err => {
                         console.log(err)
@@ -350,7 +350,8 @@ function sendPriceLimitNotification(notification,message) {
         notification.save( (err, notification) => {
 
             if (err) return console.log("save error")
-            PushNotificationManager.sendNotification(user.token,message)
+            let notificationUniqueIdentifier = notification.userId + notification.getSubscriptionString()
+            PushNotificationManager.sendNotification(notificationUniqueIdentifier,user.token,message)
             //redisManager.removePairFromExchange(notification.getPair(), notification.exchange)
         })
     })
