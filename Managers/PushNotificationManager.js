@@ -25,7 +25,7 @@ function sendNotification(deviceToken,message) {
 
         var notification = new apn.Notification();
 
-        note.expiry = Math.floor(Date.now() / 1000) + 3600; // Expires 1 hour from now.
+        notification.expiry = Math.floor(Date.now() / 1000) + 3600; // Expires 1 hour from now.
         notification.badge = 1
         notification.sound = "default"
         notification.alert = message
