@@ -33,8 +33,11 @@ if (process.env.REDIS_URL) {
 
 let redisManager = null
 
-initiateServer()
+process.on('warning', function(w){
+    console.log(' => Suman interactive warning => ', w.stack || w);
+  })
 
+initiateServer()
 
 async function initiateServer() {
 
