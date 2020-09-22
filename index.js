@@ -305,7 +305,7 @@ function timeIntervalNotificationLogic() {
                     then( price => {
                         let message = `${notification.fsym}/${notification.tsym} is now ${price}`
                         let collapseId = notification.userId + "-" + notification.getSubscriptionString()
-                        PushNotificationManager.sendNotification(notificationUniqueIdentifier,user.token,message)
+                        PushNotificationManager.sendNotification(collapseId,user.token,message)
                     })
                     .catch( err => {
                         console.log(err)
@@ -328,7 +328,6 @@ function sendRepeatedPriceLimitNotification(notification) {
     }
     else {
        message = `${notification.fsym} price is now less than ${notification.limit}`
-
     }
     notification.repeatedState = RepeatedState.WAITING_LIMIT_BASE
     notification.save()
