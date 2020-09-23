@@ -44,7 +44,6 @@ async function initiateServer() {
   try {
 
     let app = express()
-    
 
     await mongoose.connect(mongodb, { useNewUrlParser: true, useUnifiedTopology: true ,useFindAndModify: false, useCreateIndex: true })
     console.log("mongoose")
@@ -83,7 +82,6 @@ async function initiateServer() {
     //     TOPTIERVOLUME24HOUR: 23771.441133582004,
     //     TOPTIERVOLUME24HOURTO: 220359399.57789007,
     //  }
-
 
     let tick = JSON.parse(data)
 
@@ -171,7 +169,6 @@ async function createCryptoCompareStreamer() {
         var apiKey = "dd470f89924f82d5f63d337a001d096c550841337788ec74602293c285964060";
         let WebSocket = require('ws');
         let ccStreamer = new WebSocket('wss://streamer.cryptocompare.com/v2?api_key=' + apiKey)
-
         ccStreamer.on('error', (err) => {
             reject(err)
         })
@@ -194,10 +191,8 @@ async function buildRedisMap(ccStreamer) {
     try {
         let numberOfKeysRemoved = await redisManager.removeAllKeys()
         let notifications = await Notification.find({status: 1}).exec()
-        let promises = []
 
         for (notification of notifications) {
-            //await redisManager.addPairToPairsMap(notification.getPair(),notification.exchange)
             await redisManager.addToSubscriptions(notification.getSubscriptionString())
             // subsribe to crypto compare 
             var subRequest = {
@@ -304,7 +299,7 @@ function timeIntervalNotificationLogic() {
                     redisManager.getPrice(pair,notification.exchange).
                     then( price => {
                         let message = `${notification.fsym}/${notification.tsym} is now ${price}`
-                        let collapseId = notification.userId + "-" + notification.getSubscriptionString()
+                        let collapseId = notification._id
                         PushNotificationManager.sendNotification(collapseId,user.token,message)
                     })
                     .catch( err => {
@@ -349,7 +344,7 @@ function sendPriceLimitNotification(notification,message) {
         notification.save( (err, notification) => {
 
             if (err) return console.log("save error")
-            let collapseId = notification.userId + "-" + notification.getSubscriptionString()
+            let collapseId = notification._id
             PushNotificationManager.sendNotification(collapseId,user.token,message)
             //redisManager.removePairFromExchange(notification.getPair(), notification.exchange)
         })
