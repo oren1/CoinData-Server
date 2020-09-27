@@ -10,9 +10,7 @@ const decryptCipher = (ciphertext) => {
 
     var bytes  = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY_CD)
     var decryptedParams = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-
-    const bytes = CryptoJS.AES.decrypt(params, SECRET_KEY_CD)
-    return bytes.toString(CryptoJS.enc.Utf8)
+    return decryptedParams
 }
 
 module.exports = () => {
