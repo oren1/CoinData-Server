@@ -1,6 +1,8 @@
 const { validationResult } = require('express-validator')
 const User = require("../Models/User")
+const { Portfolio, ManualPortfolio, ExchangePortfolio, CoinBalance, PortfolioType } = require("../Models/Portfolio")
 const {Notification, LimitNotification, IntervalNotification, NotificationType, NotificationStatus}  = require("../Models/Notification")
+const { exchanges, exchangesManagers } = require("../Exchanges/ExchangesInfo")
 const mongoose = require('mongoose')
 
 let redisManager = null
@@ -233,6 +235,80 @@ async function addSubscriptionIfNeeded(notification) {
     }
 }
 
+const addPortfolio = async (req, res) => {
+
+    // if the portfolio type is 'exchange' then make sure that the exchange permission keys are
+    // in the request else return an error. for that, grab the exchange object from 'exchanges.js' 
+    // for the exchange name and grab it's keys.
+    let portfolioType = req.body.type
+    switch (portfolioType) {
+        case PortfolioType.MANUAL:{
+            let manualPortfolio = new ManualPortfolio(body)
+            manualPortfolio.save( (err, portfolio) => {
+                if (err) res.json({ error: err })
+                else res.json(portfolio)
+            })
+
+            break;
+        }
+               
+        case PortfolioType.EXCHANGE:{
+
+                        let hasExchangeName = req.body.has("exchangeName")
+                        if (!hasExchangeName) {
+                            res.json({error: "'exchangeName' not in request body"}) 
+                            return
+                        }
+
+                        let exchangeName = req.body["exchangeName"]
+                        let exchangeManager = exchangesManagers[exchangeName]
+                        try {
+           
+                           let token = exchangeManager.createToken(req.body)
+                           body.token = token
+           
+                           let exchangePortfolio = new ExchangePortfolio(body)
+                           exchangePortfolio.save( (err, portfolio) => {
+                                if (err) res.json({error: err})
+                                else res.json(portfolio)
+
+                           })
+           
+                        } catch (err) {
+                            res.json({error: err})
+                        }
+           
+                       break;
+        }
+        default:
+            break;
+    }
+}
+
+const myPortfolios = async (req, res) => {
+    
+    Portfolio.find({userId: req.body.userId}, (err, portfolios) => {
+
+        if(err) res.json({error: err})
+        else res.json(portfolios)
+    })
+}
+
+const supportedExchanges = (req, res) => {
+    res.json(Object.values(exchanges))
+}
+
+const getBalanceForExchange = (req, res) => {
+
+    let exchangeName = req.body.exchangeName
+    let token = req.body.token
+
+    let exchangeManager = exchangesManagers[exchangeName]
+    exchangeManager.getBalance(token, (err, balance) => {
+        if (err) res.json({error: err})
+        else res.json(balance)
+    })
+}
 
 module.exports = (_redisManager, _ccStreamer) => {
 
@@ -250,8 +326,11 @@ module.exports = (_redisManager, _ccStreamer) => {
         updateNotification,
         updateNotificationStatus,
         getNotifications,
-        deleteNotification
-        
+        deleteNotification,
+        addPortfolio,
+        myPortfolios,
+        supportedExchanges,
+        getBalanceForExchange
     }
 
 }

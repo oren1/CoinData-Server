@@ -54,8 +54,6 @@ limitNotificationSchema.index({exchange: 1, fsym:1, tsym:1, repeated: 1})
 var LimitNotification = Notification.discriminator('LimitNotification', limitNotificationSchema)
 
 
-
-
   var IntervalNotification = Notification.discriminator('IntervalNotification',
   new mongoose.Schema({
     startTime: { type: Number, required: true , default: Date.now() },
