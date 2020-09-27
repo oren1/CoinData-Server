@@ -59,7 +59,11 @@ function getBalance(exchangeToken, callback) {
              callback(array)
         }
         else { // Handle Success
-            callback(error, array)
+            let balance = []
+            balance.forEach(coin => {
+                coinsBalance.push({symbol: coin[1], amount: coin[2]})
+            });
+            callback(error, balance)
         }
     })
 }
