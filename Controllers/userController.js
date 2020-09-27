@@ -267,7 +267,7 @@ const addPortfolio = async (req, res) => {
                         try {
            
                            let token = exchangeManager.createToken(req.body)
-                           body.token = token
+                           req.body.token = token
            
                            let exchangePortfolio = new ExchangePortfolio(req.body)
                            exchangePortfolio.save( (err, portfolio) => {
