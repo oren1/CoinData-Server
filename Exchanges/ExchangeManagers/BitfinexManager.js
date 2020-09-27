@@ -60,9 +60,9 @@ function getBalance(exchangeToken, callback) {
         }
         else { // Handle Success
             let balance = []
-            balance.forEach(coin => {
+            array.forEach(coin => {
                 coinsBalance.push({symbol: coin[1], amount: coin[2]})
-            });
+            },);
             callback(error, balance)
         }
     })
