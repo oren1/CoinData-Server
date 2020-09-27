@@ -237,9 +237,11 @@ async function addSubscriptionIfNeeded(notification) {
 
 const addPortfolio = async (req, res) => {
 
-    // if the portfolio type is 'exchange' then make sure that the exchange permission keys are
-    // in the request else return an error. for that, grab the exchange object from 'exchanges.js' 
-    // for the exchange name and grab it's keys.
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
     let portfolioType = req.body.type
     switch (portfolioType) {
         case PortfolioType.MANUAL:{
@@ -281,12 +283,16 @@ const addPortfolio = async (req, res) => {
                        break;
         }
         default:
-            break;
     }
 }
 
 const myPortfolios = async (req, res) => {
     
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
     Portfolio.find({userId: req.body.userId}, (err, portfolios) => {
 
         if(err) res.json({error: err})
@@ -300,6 +306,11 @@ const supportedExchanges = (req, res) => {
 
 const getBalanceForExchange = (req, res) => {
 
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+    
     let exchangeName = req.body.exchangeName
     let token = req.body.token
 
