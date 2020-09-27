@@ -26,8 +26,6 @@ function createToken(params) {
 function getBalance(exchangeToken, callback) {
     
     let params = decryptCipher(exchangeToken)
-    let apiKey = params[PermissionKeys.API_KEY]
-    let apiSecret = params[PermissionKeys.API_SECRET]
     
     const nonce = (Date.now() * 1000).toString() // Standard nonce generator. Timestamp * 1000
     const body = {} // Field you may change depending on endpoint
@@ -35,14 +33,14 @@ function getBalance(exchangeToken, callback) {
     let signature = `/api/${apiPath}${nonce}${JSON.stringify(body)}`
     // Consists of the complete url, nonce, and request body
 
-    const sig = CryptoJS.HmacSHA384(signature, apiSecret).toString()
+    const sig = CryptoJS.HmacSHA384(signature, params.apiSecret).toString()
     // The authentication signature is hashed using the private key
 
     const options = {
         url: `https://api.bitfinex.com/${apiPath}`,
         headers: {
             'bfx-nonce': nonce,
-            'bfx-apikey': apiKey,
+            'bfx-apikey': params.apiKey,
             'bfx-signature': sig
         },
         body: body,
