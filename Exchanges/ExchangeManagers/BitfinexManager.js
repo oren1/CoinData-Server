@@ -1,13 +1,14 @@
 const CryptoJS = require('crypto-js') // Standard JavaScript cryptography library
 const { PermissionKeys } = require("../ExchangesInfo")
-const { encryptData, decryptCipher } = require("../CryptoHandler")
+const { encryptData, decryptCipher } = require("../CryptoHandler")()
 const request = require('request') // "Request" HTTP req library
 
 const apiPath = 'v2/auth/r/wallets'// Example path
 
 function createToken(params) {
-    if ( params.has(PermissionKeys.API_KEY) && params.has(PermissionKeys.API_SECRET) ) {
-        
+
+    if (PermissionKeys.API_KEY in params && PermissionKeys.API_SECRET in params) {
+
         var key = params[PermissionKeys.API_KEY]
         var secret = params[PermissionKeys.API_SECRET]
 

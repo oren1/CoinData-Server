@@ -2,7 +2,8 @@ const { validationResult } = require('express-validator')
 const User = require("../Models/User")
 const { Portfolio, ManualPortfolio, ExchangePortfolio, CoinBalance, PortfolioType } = require("../Models/Portfolio")
 const {Notification, LimitNotification, IntervalNotification, NotificationType, NotificationStatus}  = require("../Models/Notification")
-const { exchanges, exchangesManagers } = require("../Exchanges/ExchangesInfo")
+const { exchanges } = require("../Exchanges/ExchangesInfo")
+const { exchangesManagers } = require("../Exchanges/ManagersList")
 const mongoose = require('mongoose')
 
 let redisManager = null
@@ -245,7 +246,7 @@ const addPortfolio = async (req, res) => {
     let portfolioType = req.body.type
     switch (portfolioType) {
         case PortfolioType.MANUAL:{
-            let manualPortfolio = new ManualPortfolio(body)
+            let manualPortfolio = new ManualPortfolio(req.body)
             manualPortfolio.save( (err, portfolio) => {
                 if (err) res.json({ error: err })
                 else res.json(portfolio)
@@ -256,8 +257,7 @@ const addPortfolio = async (req, res) => {
                
         case PortfolioType.EXCHANGE:{
 
-                        let hasExchangeName = req.body.has("exchangeName")
-                        if (!hasExchangeName) {
+                        if (!("exchangeName" in req.body)) {
                             res.json({error: "'exchangeName' not in request body"}) 
                             return
                         }
@@ -269,7 +269,7 @@ const addPortfolio = async (req, res) => {
                            let token = exchangeManager.createToken(req.body)
                            body.token = token
            
-                           let exchangePortfolio = new ExchangePortfolio(body)
+                           let exchangePortfolio = new ExchangePortfolio(req.body)
                            exchangePortfolio.save( (err, portfolio) => {
                                 if (err) res.json({error: err})
                                 else res.json(portfolio)
@@ -277,7 +277,7 @@ const addPortfolio = async (req, res) => {
                            })
            
                         } catch (err) {
-                            res.json({error: err})
+                            res.json({error: err.message})
                         }
            
                        break;
@@ -310,7 +310,7 @@ const getBalanceForExchange = (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() })
     }
-    
+
     let exchangeName = req.body.exchangeName
     let token = req.body.token
 

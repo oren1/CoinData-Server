@@ -35,7 +35,9 @@ const routes = (App,redisManager,ccStreamer) => {
 
     // Portfolio related routes
     App.post("/addPortfolio",
-    [body("type").custom(validatePortfolioTypeValue)],
+    [body("type").custom(validatePortfolioTypeValue),
+    body("userId").exists(),
+    body("name").exists(),],
     userController.addPortfolio)
 
     App.post("/myPortfolios",

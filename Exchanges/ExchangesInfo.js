@@ -1,12 +1,10 @@
-const BitfinexManager = require("./ExchangeManagers/BitfinexManager")
-
-var PermissionKeys = {
-    API_KEY: "apiKey",
-    API_SECRET: "apiSecret",
-    USER_ID: "userId"
+const PermissionKeys = {
+    API_KEY: 'apiKey',
+    API_SECRET: 'apiSecret',
+    USER_ID: 'userId',
 }
 
-var exchanges = {
+const exchanges = {
     bitfinex: {
         name: "bitfinex",
         logoUrl: "https://www.cryptocompare.com/media/37071996/bitfinex.png",
@@ -16,12 +14,7 @@ var exchanges = {
 }
 
 
-var exchangesManagers = {
-    bitfinex: BitfinexManager
-}
-
 module.exports = {
     exchanges,
     PermissionKeys,
-    exchangesManagers
 }

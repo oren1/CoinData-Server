@@ -14,7 +14,7 @@ const decryptCipher = (ciphertext) => {
 }
 
 module.exports = () => {
-    if (!SECRET_KEYB || !SECRET_KEYB.length) {
+    if (!SECRET_KEY_CD || !SECRET_KEY_CD.length) {
         throw new Error("pleae see env")
     }
 
