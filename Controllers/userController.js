@@ -327,10 +327,10 @@ const addCoinBalance = (req, res) => {
     Portfolio.findOne({_id: portfolioId}, async (err, portfolio) => {
         
         if (err) return res.json({error: err})
-        if (portfolio.type == PortfolioType.EXCHANGE){
+        if (portfolio.type == PortfolioType.EXCHANGE) {
             return res.json({error: "can't add coin balance to 'exchange' type portfolio"})
         } 
-
+ 
         portfolio.balance.push({symbol:req.body.symbol, amount:req.body.amount})
         try {
             await portfolio.save()
@@ -338,6 +338,15 @@ const addCoinBalance = (req, res) => {
         } catch (error) {
             res.json({error: err})
         }
+    })
+}
+
+const deletePortfolio = async (req, res) => {
+
+    let portfolioId = req.body.portfolioId
+    Portfolio.findOneAndDelete({_id: portfolioId}, (err, portfolio) => {
+        if (err) return res.json({error: err})
+        res.json(portfolio)
     })
 }
 
@@ -362,7 +371,8 @@ module.exports = (_redisManager, _ccStreamer) => {
         myPortfolios,
         supportedExchanges,
         getBalanceForExchange,
-        addCoinBalance
+        addCoinBalance,
+        deletePortfolio
     }
 
 }

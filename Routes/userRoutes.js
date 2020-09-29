@@ -37,7 +37,7 @@ const routes = (App,redisManager,ccStreamer) => {
     App.post("/addPortfolio",
     [body("type").custom(validatePortfolioTypeValue),
     body("userId").exists(),
-    body("name").exists(),],
+    body("name").exists()],
     userController.addPortfolio)
 
     App.post("/myPortfolios",
@@ -56,6 +56,10 @@ const routes = (App,redisManager,ccStreamer) => {
     body("symbol").exists(),
     body("amount").exists()],
     userController.addCoinBalance)
+
+    App.post("/deletePortfolio",
+    [body("portfolioId").exists()],
+    userController.deletePortfolio)
 }
 
 module.exports = routes

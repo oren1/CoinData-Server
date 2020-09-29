@@ -1,3 +1,4 @@
+const dotenv = require("dotenv").config()
 const mongoose = require('mongoose')
 var redis = require('redis');
 const User = require('./Models/User')
@@ -10,6 +11,8 @@ const PushNotificationManager = require("./Managers/PushNotificationManager")
 const PORT = "4018"
 const config = require("./config/configuration")
 const RedisManager = require("./Managers/RedisManager")
+
+
 var MongoClient = require('mongodb').MongoClient;
 
 let mongodb = "mongodb+srv://dbuser:atlas123456@cluster0-rhuii.mongodb.net/Users?retryWrites=true&w=majority"
