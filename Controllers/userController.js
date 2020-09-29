@@ -300,11 +300,11 @@ const myPortfolios = async (req, res) => {
     })
 }
 
-const supportedExchanges = (req, res) => {
+const supportedExchanges = async (req, res) => {
     res.json(Object.values(exchanges))
 }
 
-const getBalanceForExchange = (req, res) => {
+const getBalanceForExchange = async (req, res) => {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -318,6 +318,26 @@ const getBalanceForExchange = (req, res) => {
     exchangeManager.getBalance(token, (err, balance) => {
         if (err) res.json({error: err})
         else res.json(balance)
+    })
+}
+
+const addCoinBalance = (req, res) => {
+
+    let portfolioId = req.body.portfolioId
+    Portfolio.findOne({_id: portfolioId}, async (err, portfolio) => {
+        
+        if (err) return res.json({error: err})
+        if (portfolio.type == PortfolioType.EXCHANGE){
+            return res.json({error: "can't add coin balance to 'exchange' type portfolio"})
+        } 
+
+        portfolio.balance.push({symbol:req.body.symbol, amount:req.body.amount})
+        try {
+            await portfolio.save()
+            res.json(portfolio)
+        } catch (error) {
+            res.json({error: err})
+        }
     })
 }
 
@@ -341,7 +361,8 @@ module.exports = (_redisManager, _ccStreamer) => {
         addPortfolio,
         myPortfolios,
         supportedExchanges,
-        getBalanceForExchange
+        getBalanceForExchange,
+        addCoinBalance
     }
 
 }

@@ -51,6 +51,11 @@ const routes = (App,redisManager,ccStreamer) => {
      body("token").exists()],
      userController.getBalanceForExchange)
 
+     App.post("/addCoinBalance",
+     [body("portfolioId").exists(),
+    body("symbol").exists(),
+    body("amount").exists()],
+    userController.addCoinBalance)
 }
 
 module.exports = routes
