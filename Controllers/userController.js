@@ -296,7 +296,7 @@ const myPortfolios = async (req, res) => {
     Portfolio.find({userId: req.body.userId}, (err, portfolios) => {
 
         if(err) res.json({error: err})
-        else res.json(portfolios)
+        else res.json({portfolios: portfolios})
     })
 }
 
