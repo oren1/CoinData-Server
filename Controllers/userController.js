@@ -313,11 +313,14 @@ const getBalanceForExchange = async (req, res) => {
 
     let exchangeName = req.body.exchangeName
     let token = req.body.token
+    let portfolioId = req.body.portfolioId
 
     let exchangeManager = exchangesManagers[exchangeName]
     exchangeManager.getBalance(token, (err, balance) => {
+       
         if (err) res.json({error: err})
         else res.json(balance)
+
     })
 }
 
