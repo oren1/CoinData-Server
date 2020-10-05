@@ -319,7 +319,7 @@ const getBalanceForExchange = async (req, res) => {
     exchangeManager.getBalance(token, (err, balance) => {
        
         if (err) res.json({error: err})
-        else res.json(balance)
+        else res.json({balance: balance})
 
     })
 }
