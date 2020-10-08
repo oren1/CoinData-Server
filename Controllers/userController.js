@@ -344,6 +344,34 @@ const addCoinBalance = (req, res) => {
     })
 }
 
+const updateCoinBalance = async (req, res) => {
+
+    let portfolioId = req.body.portfolioId
+    let symbol = req.body.symbol
+    let amount = req.body.amount
+
+    Portfolio.findById(portfolioId, async (err, portfolio) => {
+        if (err) return res.json({error: err})
+        if (portfolio == null) return res.json({error: "porfolio not exists"})
+
+        for(coinBalance of portfolio.balance) {
+          
+            if (coinBalance.symbol == symbol) {
+                coinBalance.amount = amount
+            }
+        }
+
+        try {
+            await portfolio.save()
+            res.json(portfolio)
+
+        } catch (error) {
+            res.json({error: error})
+        }
+
+    })
+}
+
 const deletePortfolio = async (req, res) => {
 
     let portfolioId = req.body.portfolioId
@@ -374,6 +402,7 @@ module.exports = (_redisManager, _ccStreamer) => {
         myPortfolios,
         supportedExchanges,
         getBalanceForExchange,
+        addCoinBalance,
         addCoinBalance,
         deletePortfolio
     }

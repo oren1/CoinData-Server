@@ -60,6 +60,12 @@ const routes = (App,redisManager,ccStreamer) => {
     App.post("/deletePortfolio",
     [body("portfolioId").exists()],
     userController.deletePortfolio)
+
+    App.post("updateCoinBalance",
+    [body("portfolioId").exsists(),
+    body("symbol").exists(),
+    body("amount").exists()],
+    userController.updateCoinBalance)
 }
 
 module.exports = routes
