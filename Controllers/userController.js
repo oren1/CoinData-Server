@@ -403,7 +403,7 @@ module.exports = (_redisManager, _ccStreamer) => {
         supportedExchanges,
         getBalanceForExchange,
         addCoinBalance,
-        addCoinBalance,
+        updateCoinBalance,
         deletePortfolio
     }
 

@@ -61,7 +61,7 @@ const routes = (App,redisManager,ccStreamer) => {
     [body("portfolioId").exists()],
     userController.deletePortfolio)
 
-    App.post("updateCoinBalance",
+    App.post("/updateCoinBalance",
     [body("portfolioId").exists(),
     body("symbol").exists(),
     body("amount").exists()],
