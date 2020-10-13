@@ -6,7 +6,8 @@ const PermissionKeys = {
 
 const exchanges = {
     bitfinex: {
-        name: "bitfinex",
+        name: "Bitfinex",
+        keyName: "bitfinex",
         logoUrl: "https://www.cryptocompare.com/media/37071996/bitfinex.png",
         instructions: ["string1", "string2","string3","string4"],
         permissionKeys: [ 
