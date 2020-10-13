@@ -5,23 +5,26 @@ const PermissionKeys = {
 }
 
 const exchanges = {
-    bitfinex: {
-        name: "Bitfinex",
-        keyName: "bitfinex",
-        logoUrl: "https://www.cryptocompare.com/media/37071996/bitfinex.png",
-        instructions: ["string1", "string2","string3","string4"],
-        permissionKeys: [ 
-            {
-                key: PermissionKeys.API_KEY,
-                keyTitle: "Api Key",
-                supportQR: true
-            },
-            {
-                key: PermissionKeys.API_SECRET,
-                keyTitle: "Api Secret",
-                supportQR: true
-            }]
-    }
+    exchanges:[
+        {
+            name: "Bitfinex",
+            keyName: "bitfinex",
+            logoUrl: "https://www.cryptocompare.com/media/37071996/bitfinex.png",
+            instructions: ["string1", "string2","string3","string4"],
+            permissionKeys: [ 
+                {
+                    key: PermissionKeys.API_KEY,
+                    keyTitle: "Api Key",
+                    supportQR: true
+                },
+                {
+                    key: PermissionKeys.API_SECRET,
+                    keyTitle: "Api Secret",
+                    supportQR: true
+                }]
+        }
+        
+    ] 
 }
 
 

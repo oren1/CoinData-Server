@@ -301,7 +301,7 @@ const myPortfolios = async (req, res) => {
 }
 
 const supportedExchanges = async (req, res) => {
-    res.json(Object.values(exchanges))
+    res.json(exchanges)
 }
 
 const getBalanceForExchange = async (req, res) => {
