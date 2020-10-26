@@ -387,8 +387,9 @@ const parseQRCode = async (req, res) => {
     let code = req.body.code
 
     let exchangeManager = exchangesManagers[exchangeName]
+    if (exchangeManager == null) res.json({error: `exchange named '${exchangeName}' doesn't exist`})
+   
     let JSON = exchangeManager.parseQRCode(code)
-    
     res.json(JSON)
 
 }
