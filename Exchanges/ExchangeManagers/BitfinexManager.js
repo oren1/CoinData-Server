@@ -5,6 +5,29 @@ const request = require('request') // "Request" HTTP req library
 
 const apiPath = 'v2/auth/r/wallets'// Example path
 
+function parseQRCode(code) {
+    let JSON = {}
+    let array = code.split('-')
+    for (const pairString of array) {
+        let pair = pairString.split(":")
+        let key = pair[0]
+        let value = pair[1]
+
+        switch (key) {
+            case "key":
+                JSON[PermissionKeys.API_KEY] = value
+                break;
+            case "secret":
+                 JSON[PermissionKeys.API_SECRET] = value
+                 break;
+            default:
+                break;
+        }
+    }
+
+    return JSON
+}
+
 function createToken(params) {
 
     if (PermissionKeys.API_KEY in params && PermissionKeys.API_SECRET in params) {
@@ -69,6 +92,7 @@ function getBalance(exchangeToken, callback) {
 }
 
 module.exports = {
+    parseQRCode,
     createToken,
     getBalance
 }

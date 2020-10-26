@@ -381,6 +381,17 @@ const deletePortfolio = async (req, res) => {
     })
 }
 
+const parseQRCode = async (req, res) => {
+
+    let exchangeName = req.body.exchangeName
+    let code = req.body.code
+
+    let exchangeManager = exchangesManagers[exchangeName]
+    let JSON = exchangeManager.parseQRCode(code)
+    
+    res.json(JSON)
+
+}
 module.exports = (_redisManager, _ccStreamer) => {
 
     if(!_redisManager) throw new Error("Missing redis manager")
@@ -404,7 +415,8 @@ module.exports = (_redisManager, _ccStreamer) => {
         getBalanceForExchange,
         addCoinBalance,
         updateCoinBalance,
-        deletePortfolio
+        deletePortfolio,
+        parseQRCode
     }
 
 }

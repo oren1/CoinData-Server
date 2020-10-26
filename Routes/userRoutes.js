@@ -66,6 +66,11 @@ const routes = (App,redisManager,ccStreamer) => {
     body("symbol").exists(),
     body("amount").exists()],
     userController.updateCoinBalance)
+    
+    App.post("/parseQRCode",
+    [body("code").exists(),
+    body("exchange").exists()],
+    userController.parseQRCode)
 }
 
 module.exports = routes
