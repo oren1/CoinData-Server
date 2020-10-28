@@ -6,6 +6,12 @@ const { exchanges } = require("../Exchanges/ExchangesInfo")
 const { exchangesManagers } = require("../Exchanges/ManagersList")
 const mongoose = require('mongoose')
 
+const ResponseKey = {
+    Success: "success",
+    Message: "message",
+    Data: "data"
+}
+
 let redisManager = null
 let ccStreamer = null
 
@@ -248,8 +254,15 @@ const addPortfolio = async (req, res) => {
         case PortfolioType.MANUAL:{
             let manualPortfolio = new ManualPortfolio(req.body)
             manualPortfolio.save( (err, portfolio) => {
-                if (err) res.json({ error: err })
-                else res.json(portfolio)
+                if (err) res.json({ 
+                    [ResponseKey.Success]: false,
+                    [ResponseKey.Message]: "error saving portfolio - try again later",
+                })
+                else res.json({ 
+                    [ResponseKey.Success]: true,
+                    [ResponseKey.Message]: "portfolio created successfully",
+                    [ResponseKey.Data]: portfolio
+                })
             })
 
             break;
@@ -265,19 +278,31 @@ const addPortfolio = async (req, res) => {
                         let exchangeName = req.body["exchangeName"]
                         let exchangeManager = exchangesManagers[exchangeName]
                         try {
-           
+                            
                            let token = exchangeManager.createToken(req.body)
-                           req.body.token = token
-           
+                           // Making a fetch to the balance to check that the exchange keys the user sent 
+                           // are correct and supported by the exchange
+                           await exchangeManager.getBalance(token)
+                           req.body.token = token 
+
                            let exchangePortfolio = new ExchangePortfolio(req.body)
                            exchangePortfolio.save( (err, portfolio) => {
-                                if (err) res.json({error: err})
-                                else res.json(portfolio)
-
+                                if (err) res.json({ 
+                                    [ResponseKey.Success]: false,
+                                    [ResponseKey.Message]: "error saving portfolio - try again later",
+                                })
+                                else res.json({ 
+                                    [ResponseKey.Success]: true,
+                                    [ResponseKey.Message]: "portfolio created successfully",
+                                    [ResponseKey.Data]: portfolio
+                                })
                            })
            
                         } catch (err) {
-                            res.json({error: err.message})
+                            res.json({ 
+                                [ResponseKey.Success]: false,
+                                [ResponseKey.Message]: err.message,
+                            })
                         }
            
                        break;
@@ -316,11 +341,12 @@ const getBalanceForExchange = async (req, res) => {
     let portfolioId = req.body.portfolioId
 
     let exchangeManager = exchangesManagers[exchangeName]
-    exchangeManager.getBalance(token, (err, balance) => {
-       
-        if (err) res.json({error: err})
-        else res.json({balance: balance})
-
+    exchangeManager.getBalance(token).
+    then( balance => {
+        res.json({balance: balance})
+    })
+    .catch(error => {
+        res.json({error: error})
     })
 }
 

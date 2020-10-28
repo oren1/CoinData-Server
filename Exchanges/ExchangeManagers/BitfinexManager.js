@@ -46,8 +46,9 @@ function createToken(params) {
     else throw new Error("api key or secret are missing")
 }
 
-function getBalance(exchangeToken, callback) {
-    
+function getBalance(exchangeToken) {
+   return new Promise( (resolve,reject) => {
+
     let params = decryptCipher(exchangeToken)
     let apiKey = params[PermissionKeys.API_KEY]
     let apiSecret = params[PermissionKeys.API_SECRET]
@@ -75,20 +76,25 @@ function getBalance(exchangeToken, callback) {
 
     request.post(options, (error, response, body) => {
         
-        if (error) callback(error)
+        if (error) reject(error)
 
         let array = body
         if (array[0] == 'error') { // Handle Error
-             callback(array)
+            let errorMessage = array[2]
+            let error = new Error(errorMessage)
+            reject(error)
         }
         else { // Handle Success
             let balance = []
             array.forEach(coin => {
                 balance.push({symbol: coin[1], amount: coin[2]})
             })
-            callback(error, balance)
+            resolve(balance)
         }
     })
+
+   }) 
+
 }
 
 module.exports = {
