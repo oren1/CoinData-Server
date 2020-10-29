@@ -16,7 +16,8 @@ var PortfolioSchema = new Schema({
     userId: { type: String, required: true },
     type: { type: String, required: true },
     name: { type: String, required: true },
-    balance: { type: [CoinBalanceSchema] }
+    balance: { type: [CoinBalanceSchema] },
+    dateCreated: {type: Number, required: true, default: Date.now() }
 })
 
 var ManualPortfolioSchema = new mongoose.Schema({
