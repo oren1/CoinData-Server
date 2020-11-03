@@ -88,7 +88,7 @@ function getBalance(exchangeToken) {
                 balances.forEach(coin => {
                     let freeBalanceAmount = coin["free"]
                     if (freeBalanceAmount > 0) {
-                        balance.push({symbol: coin["asset"], amount: coin["free"]})
+                        balance.push({symbol: coin["asset"], amount: Number(coin["free"])})
                     }
                 })
                 resolve(balance)
