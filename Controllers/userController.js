@@ -417,7 +417,6 @@ const parseQRCode = async (req, res) => {
    
     let JSON = exchangeManager.parseQRCode(code)
     res.json(JSON)
-
 }
 module.exports = (_redisManager, _ccStreamer) => {
 
