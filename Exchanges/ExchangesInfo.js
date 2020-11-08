@@ -91,7 +91,7 @@ const exchanges = {
             instructions: ["1. Log in to your KuCoin account and go to Account -> Api Management\n", 
             "2. Click on Create Api\n",
             "3. Enter Api Name and Api Passphrase. Save the passphrase, you will need it later.\n",
-            "4. For verification purpose you will need to enter you trading password and make an sms verification.\n",
+            "4. For verification purpose you will need to enter your trading password and make an sms verification.\n",
             "5. Enter here the Key, Secret, and Passphrase. scanning the QR from KuCoin only gives the secret key.\n"],
 
             permissionKeys: [ 
@@ -108,6 +108,29 @@ const exchanges = {
                 {
                     key: PermissionKeys.USER_ID,
                     keyTitle: "Passphrase",
+                    supportQR: false
+                }]
+        },
+        {
+            name: "Bitstamp",
+            keyName: "bitstamp",
+            logoUrl: "https://www.cryptocompare.com/media/34478497/bitstamp.jpg",
+            instructions: ["1. Log in to your Bitstamp account and go to Account -> Security -> Api Access\n", 
+            "2. Click on New Api Key\n",
+            "3. In Permissions select only Account Balance and User Transactions.\n",
+            "4. Click submit.\n",
+            "5. Activate the account.\n",
+            "6. Copy the key and secret here.\n"],
+
+            permissionKeys: [ 
+                {
+                    key: PermissionKeys.API_KEY,
+                    keyTitle: "Key",
+                    supportQR: false
+                },
+                {
+                    key: PermissionKeys.API_SECRET,
+                    keyTitle: "Secret",
                     supportQR: false
                 }]
         }
