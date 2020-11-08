@@ -76,7 +76,7 @@ function getBalance(exchangeToken) {
                 let balance = []
                 let balances = body.data
                 balances.forEach( coinBalance => {
-                    balance.push({symbol: coinBalance["currency"], amount: coinBalance["available"]})
+                    balance.push({symbol: coinBalance["currency"], amount: Number(coinBalance["available"])})
                 })
                 resolve(balance)
             }

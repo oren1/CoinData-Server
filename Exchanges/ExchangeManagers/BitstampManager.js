@@ -86,7 +86,7 @@ function getBalance(exchangeToken) {
 
                         if (value > 0) {
                             let symbol = key.split("_")[0]
-                            balance.push({symbol: symbol.toUpperCase(), amount: value})
+                            balance.push({symbol: symbol.toUpperCase(), amount: Number(value)})
                         }
 
                     }
