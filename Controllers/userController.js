@@ -430,7 +430,11 @@ const settings = async (req, res) => {
         fetchDataTimeInterval: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
     }
 
-    res.json({settings: settings})
+    res.json({ 
+        [ResponseKey.Success]: true,
+        [ResponseKey.Message]: "Settings sent successfuly",
+        [ResponseKey.Data]: settings
+    })
 
 }
 
