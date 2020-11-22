@@ -160,6 +160,7 @@ async function createRedisClient() {
         
         redisClient.on('error', function (err) {
             console.log('redis error:' + err)
+            console.log(err.stack)
             reject(err)
         });
 

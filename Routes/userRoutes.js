@@ -10,6 +10,8 @@ const routes = (App,redisManager,ccStreamer) => {
     App.route("/createUser")
     .post(userController.createUser)
 
+
+    // Notification related routes
     App.post('/createNotification/:notificationType',
         [param('notificationType').custom(validateNotificationTypeValue),
          body('direction').custom(validateDirectionValue)],
@@ -71,6 +73,12 @@ const routes = (App,redisManager,ccStreamer) => {
     [body("code").exists(),
     body("exchange").exists()],
     userController.parseQRCode)
+
+
+    // Settings route
+    App.get("/settings", userController.settings)
+
+
 }
 
 module.exports = routes

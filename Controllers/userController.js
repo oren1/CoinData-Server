@@ -1,9 +1,10 @@
 const { validationResult } = require('express-validator')
 const User = require("../Models/User")
 const { Portfolio, ManualPortfolio, ExchangePortfolio, CoinBalance, PortfolioType } = require("../Models/Portfolio")
-const {Notification, LimitNotification, IntervalNotification, NotificationType, NotificationStatus}  = require("../Models/Notification")
+const { Notification, LimitNotification, IntervalNotification, NotificationType, NotificationStatus}  = require("../Models/Notification")
 const { exchanges } = require("../Exchanges/ExchangesInfo")
 const { exchangesManagers } = require("../Exchanges/ManagersList")
+const { Settings } = require("../Models/Settings")
 const mongoose = require('mongoose')
 
 const ResponseKey = {
@@ -418,6 +419,21 @@ const parseQRCode = async (req, res) => {
     let JSON = exchangeManager.parseQRCode(code)
     res.json(JSON)
 }
+
+
+const settings = async (req, res) => {
+   
+    let settings = {
+        maxAmountOfIntervalNotification: 2,
+        maxAmountOfLimitNotification: 3,
+        maxAmountOfPortfolios: 3,
+        fetchDataTimeInterval: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
+    }
+
+    res.json({settings: settings})
+
+}
+
 module.exports = (_redisManager, _ccStreamer) => {
 
     if(!_redisManager) throw new Error("Missing redis manager")
@@ -442,7 +458,8 @@ module.exports = (_redisManager, _ccStreamer) => {
         addCoinBalance,
         updateCoinBalance,
         deletePortfolio,
-        parseQRCode
+        parseQRCode,
+        settings
     }
 
 }
