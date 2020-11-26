@@ -94,7 +94,7 @@ const updateUserToken = (req,res) => {
 
     User.findOneAndUpdate({_id: req.body.userId}, { token: req.body.token }, {new: true}, (err, userDoc) => {
 
-        if (err) res.json(err)
+        if (err) res.json({error: err})
         else {
             res.json(userDoc)
         }
@@ -427,7 +427,7 @@ const settings = async (req, res) => {
         maxAmountOfIntervalNotification: 2,
         maxAmountOfLimitNotification: 3,
         maxAmountOfPortfolios: 3,
-        fetchDataTimeInterval: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
+        fetchDataTimeInMiliSeconds: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
     }
 
     res.json({ 
