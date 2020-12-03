@@ -11,6 +11,7 @@ const PushNotificationManager = require("./Managers/PushNotificationManager")
 const PORT = "4018"
 const config = require("./config/configuration")
 const RedisManager = require("./Managers/RedisManager")
+const ReconnectingWebSocket = require('reconnecting-websocket') 
 
 
 var MongoClient = require('mongodb').MongoClient;
@@ -52,59 +53,87 @@ async function initiateServer() {
     console.log("mongoose")
     const redisClient = await createRedisClient()
     const ccStreamer = await createCryptoCompareStreamer()
-    ccStreamer.on('message', function incoming(data) {
+    // ccStreamer.on('message', function incoming(data) {
        
-    // {
-    //     TYPE: 5,
-    //     MARKET: "CCCAGG",
-    //     FROMSYMBOL: "BTC",
-    //     TOSYMBOL: "USD",
-    //     FLAGS: 4,
-    //     PRICE: 9287.39,
-    //     LASTUPDATE: 1594203730,
-    //     MEDIAN: 9289,
-    //     LASTVOLUME: 0.02077,
-    //     LASTVOLUMETO: 192.8712585,
-    //     LASTTRADEID: 72033924,
-    //     VOLUMEDAY: 12686.421452815894,
-    //     VOLUMEDAYTO: 117751995.373741,
-    //     VOLUME24HOUR: 25740.369137112,
-    //     VOLUME24HOURTO: 238574938.52683517,
-    //     OPENDAY: 9257.3,
-    //     HIGHDAY: 9321.59,
-    //     LOWDAY: 9236.9,
-    //     OPEN24HOUR: 9250.05,
-    //     HIGH24HOUR: 9322.06,
-    //     LOW24HOUR: 9201.52,
-    //     LASTMARKET: "BTCAlpha",
-    //     VOLUMEHOUR: 358.99167771000094,
-    //     VOLUMEHOURTO: 3332665.889176361,
-    //     OPENHOUR: 9279.96,
-    //     HIGHHOUR: 9291.91,
-    //     LOWHOUR: 9279.04,
-    //     TOPTIERVOLUME24HOUR: 23771.441133582004,
-    //     TOPTIERVOLUME24HOURTO: 220359399.57789007,
-    //  }
+    // // {
+    // //     TYPE: 5,
+    // //     MARKET: "CCCAGG",
+    // //     FROMSYMBOL: "BTC",
+    // //     TOSYMBOL: "USD",
+    // //     FLAGS: 4,
+    // //     PRICE: 9287.39,
+    // //     LASTUPDATE: 1594203730,
+    // //     MEDIAN: 9289,
+    // //     LASTVOLUME: 0.02077,
+    // //     LASTVOLUMETO: 192.8712585,
+    // //     LASTTRADEID: 72033924,
+    // //     VOLUMEDAY: 12686.421452815894,
+    // //     VOLUMEDAYTO: 117751995.373741,
+    // //     VOLUME24HOUR: 25740.369137112,
+    // //     VOLUME24HOURTO: 238574938.52683517,
+    // //     OPENDAY: 9257.3,
+    // //     HIGHDAY: 9321.59,
+    // //     LOWDAY: 9236.9,
+    // //     OPEN24HOUR: 9250.05,
+    // //     HIGH24HOUR: 9322.06,
+    // //     LOW24HOUR: 9201.52,
+    // //     LASTMARKET: "BTCAlpha",
+    // //     VOLUMEHOUR: 358.99167771000094,
+    // //     VOLUMEHOURTO: 3332665.889176361,
+    // //     OPENHOUR: 9279.96,
+    // //     HIGHHOUR: 9291.91,
+    // //     LOWHOUR: 9279.04,
+    // //     TOPTIERVOLUME24HOUR: 23771.441133582004,
+    // //     TOPTIERVOLUME24HOURTO: 220359399.57789007,
+    // //  }
 
-    let tick = JSON.parse(data)
+    // let tick = JSON.parse(data)
 
-    if(tick.TYPE == 5) {
-        // console.log(tick)
+    // if(tick.TYPE == 5) {
+    //     // console.log(tick)
+    //     console.log(tick)
+    //     if (tick.PRICE) { // If the price didn't change than the PRICE is not included in the json object
 
-        if (tick.PRICE) { // If the price didn't change than the PRICE is not included in the json object
-
-            let pair = tick.FROMSYMBOL +"~"+ tick.TOSYMBOL
-            let exchange = tick.MARKET
-            let price = `${tick.PRICE}`
+    //         let pair = tick.FROMSYMBOL +"~"+ tick.TOSYMBOL
+    //         let exchange = tick.MARKET
+    //         let price = `${tick.PRICE}`
         
-            redisManager.addPriceToPriceMap(pair, exchange, price)
-        }
+    //         redisManager.addPriceToPriceMap(pair, exchange, price)
+    //     }
 
-        updateSubscriptionsIfNeeded(tick)
-        limitNotificationLogic(tick)
-    }
+    //     updateSubscriptionsIfNeeded(tick)
+    //     limitNotificationLogic(tick)
+    // }
 
-    })
+    // })
+
+
+    ccStreamer.addEventListener('message',)
+
+    ccStreamer.addEventListener('message', function incoming(json) {
+       
+            let data = json["data"]
+            let tick = JSON.parse(data)
+
+            if(tick.TYPE == 5) {
+                // console.log(tick)
+                if (tick.PRICE) { // If the price didn't change then the PRICE is not included in the json object
+        
+                    let pair = tick.FROMSYMBOL +"~"+ tick.TOSYMBOL
+                    let exchange = tick.MARKET
+                    let price = `${tick.PRICE}`
+                
+                    redisManager.addPriceToPriceMap(pair, exchange, price)
+                }
+        
+                updateSubscriptionsIfNeeded(tick)
+                limitNotificationLogic(tick)
+            }
+    
+        })
+
+
+
 
     config.db.redisClient = redisClient
     redisManager = RedisManager(config.db.redisClient, ccStreamer)
@@ -172,18 +201,35 @@ async function createCryptoCompareStreamer() {
 
         var apiKey = "dd470f89924f82d5f63d337a001d096c550841337788ec74602293c285964060";
         let WebSocket = require('ws');
-        let ccStreamer = new WebSocket('wss://streamer.cryptocompare.com/v2?api_key=' + apiKey)
-        ccStreamer.on('error', (err) => {
-            reject(err)
-        })
-        ccStreamer.on('open', function open() {
+        // let ccStreamer = new WebSocket('wss://streamer.cryptocompare.com/v2?api_key=' + apiKey)
+        // ccStreamer.on('error', (err) => {
+        //     reject(err)
+        // })
+        // ccStreamer.on('open', function open() {
 
+        //     console.log("ccStreamer connected")
+        //     resolve(ccStreamer)
+        // })
+        // ccStreamer.on('close',(code,reason) => {
+            
+        // })
+         
+    const options = {
+        WebSocket: WebSocket, // custom WebSocket constructor
+        connectionTimeout: 5000, // ms to wait between retries
+    }
+    const ccStreamer = new ReconnectingWebSocket('wss://streamer.cryptocompare.com/v2?api_key=' + apiKey, [], options)
+        
+    ccStreamer.addEventListener('open', () => {
             console.log("ccStreamer connected")
-            resolve(ccStreamer)
+            resolve(ccStreamer)        
         })
-
+        ccStreamer.addEventListener('error', () => {
+          reject(err)
+        })
 
     })
+
 }
 async function buildRedisMap(ccStreamer) {
     
