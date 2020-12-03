@@ -108,8 +108,6 @@ async function initiateServer() {
     // })
 
 
-    ccStreamer.addEventListener('message',)
-
     ccStreamer.addEventListener('message', function incoming(json) {
        
             let data = json["data"]
