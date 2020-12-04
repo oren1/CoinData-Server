@@ -63,6 +63,7 @@ const createNotification = (req,res) => {
 
          case NotificationType.INTERVAL_NOTIFICATION: {
     
+            req.body.startTime = Date.now()
             const intervalNotification = new IntervalNotification(req.body)
             intervalNotification.save( async (err,notification) => {
                     
