@@ -212,13 +212,12 @@ const updateNotification = async (req,res) => {
 
 const deleteNotification = (req,res) => {
 
-    Notification.findOneAndDelete({_id: req.body.id}, (err,notification) => {
-
+    let notificationId = req.body.id
+    Notification.findOneAndDelete({_id: notificationId}, (err,notification) => {
         if (err) res.json(err)
         else {
             res.json(notification)
         }
-        
     })
 
 }
