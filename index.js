@@ -221,10 +221,11 @@ async function createCryptoCompareStreamer() {
     ccStreamer.addEventListener('open', () => {
             console.log("ccStreamer connected")
             resolve(ccStreamer)        
-        })
-        ccStreamer.addEventListener('error', () => {
+    })
+
+    ccStreamer.addEventListener('error', () => {
           reject(err)
-        })
+    })
 
     })
 

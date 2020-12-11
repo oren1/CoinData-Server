@@ -438,6 +438,52 @@ const settings = async (req, res) => {
 
 }
 
+const deleteMultiplePortfolios = async (req, res) => {
+
+    let portfoliosIds = req.body.portfoliosIds
+    Portfolio.deleteMany({_id: {
+        $in: portfoliosIds
+    }}, (err) => {
+        if (err) {
+            res.json({
+                [ResponseKey.Success]: false,
+                [ResponseKey.Message]: "error deleteing portfolios",
+                [ResponseKey.Data]: {}
+            })
+        } 
+        else {
+            res.json({
+                [ResponseKey.Success]: true,
+                [ResponseKey.Message]: "Successfuly deleted portfolios",
+                [ResponseKey.Data]: portfoliosIds
+            })
+        } 
+    })
+}
+
+const deleteMultipleNotifications = (req, res) => {
+
+    let notificationsIds = req.body.notificationsIds
+    Notification.deleteMany({_id: {
+        $in: notificationsIds
+    }}, (err) => {
+        if (err) {
+            res.json({
+                [ResponseKey.Success]: false,
+                [ResponseKey.Message]: "error deleteing notifications",
+                [ResponseKey.Data]: {}
+            })
+        } 
+        else {
+            res.json({
+                [ResponseKey.Success]: true,
+                [ResponseKey.Message]: "Successfuly deleted notifications",
+                [ResponseKey.Data]: notificationsIds
+            })
+        } 
+    })
+}
+
 module.exports = (_redisManager, _ccStreamer) => {
 
     if(!_redisManager) throw new Error("Missing redis manager")
@@ -463,7 +509,9 @@ module.exports = (_redisManager, _ccStreamer) => {
         updateCoinBalance,
         deletePortfolio,
         parseQRCode,
-        settings
+        settings,
+        deleteMultiplePortfolios,
+        deleteMultipleNotifications
     }
 
 }

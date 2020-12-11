@@ -34,6 +34,9 @@ const routes = (App,redisManager,ccStreamer) => {
     App.route("/deleteNotification")
     .post(userController.deleteNotification)
 
+    App.post("/deleteMultipleNotifications",
+    body("notificationsIds").exists(),
+    userController.deleteMultipleNotifications)
 
     // Portfolio related routes
     App.post("/addPortfolio",
@@ -74,6 +77,8 @@ const routes = (App,redisManager,ccStreamer) => {
     body("exchange").exists()],
     userController.parseQRCode)
 
+    App.post("/deleteMultiplePortfolios",
+    body("portfoliosIds").exists(),userController.deleteMultiplePortfolios)
 
     // Settings route
     App.get("/settings", userController.settings)
