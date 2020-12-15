@@ -269,15 +269,24 @@ function limitNotificationLogic(tick) {
             if (notification.direction == NotificationDirection.BIGGER_THAN) {
 
                 if(tick.PRICE > notification.limit) {
-                    
-                    let message = `${notification.fsym} price is now more than ${notification.limit}`
+                    let formattedLimit = Intl.NumberFormat("en-US",{
+                        style: 'decimal',
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2}).format(notification.limit)
+
+                    let message = `${notification.fsym}/${notification.tsym} price is now more than ${formattedLimit}`
                     sendPriceLimitNotification(notification,message)
                 }
             }
             else {
                 if(tick.PRICE < notification.limit) {
                     
-                    let message = `${notification.fsym} price is now less than ${notification.limit}`
+                    let formattedLimit = Intl.NumberFormat("en-US",{
+                        style: 'decimal',
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2}).format(notification.limit)
+
+                    let message = `${notification.fsym}/${notification.tsym} price is now less than ${formattedLimit}`
                     sendPriceLimitNotification(notification,message)
 
             }
@@ -347,7 +356,12 @@ function timeIntervalNotificationLogic() {
                     let pair = notification.getPair()
                     redisManager.getPrice(pair,notification.exchange).
                     then( price => {
-                        let message = `${notification.fsym}/${notification.tsym} is now ${price}`
+                        let formattedPrice = Intl.NumberFormat("en-US",{
+                            style: 'decimal',
+                            minimumFractionDigits: 2, 
+                            maximumFractionDigits: 2}).format(price)
+
+                        let message = `${notification.fsym}/${notification.tsym} is now ${formattedPrice}`
                         let collapseId = notification._id
                         PushNotificationManager.sendNotification(collapseId,user.token,message)
                     })
