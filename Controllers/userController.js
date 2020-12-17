@@ -427,8 +427,7 @@ const settings = async (req, res) => {
         maxAmountOfIntervalNotification: 2,
         maxAmountOfLimitNotification: 3,
         maxAmountOfPortfolios: 3,
-        // fetchDataTimeInMiliSeconds: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
-        fetchDataTimeInMiliSeconds: Date.now() + (1000 * 60 * 5) // fetch data once in 24 hours
+        fetchDataTimeInMiliSeconds: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
     }
 
     res.json({ 
