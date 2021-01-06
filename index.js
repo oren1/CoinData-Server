@@ -142,8 +142,8 @@ async function initiateServer() {
     
     // parse application/json
     app.use(bodyParser.json())
-    
-    
+    app.use(express.static('public'))
+
     userRoutes(app,redisManager,ccStreamer)
     
     app.get("/", (req,res) => {
@@ -223,7 +223,7 @@ async function createCryptoCompareStreamer() {
             resolve(ccStreamer)        
     })
 
-    ccStreamer.addEventListener('error', () => {
+    ccStreamer.addEventListener('error', (err) => {
           reject(err)
     })
 
