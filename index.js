@@ -69,8 +69,8 @@ async function initiateServer() {
     
     app.get("/", (req,res) => {
     
-        res.send(`First get request on port ${process.env.PORT || PORT}`)
-    
+        // res.send(`First get request on port ${process.env.PORT || PORT}`)
+        res.send("Welcome to CoinData. Please Contact Us Directly at: coin.data.app@gmail.com")
     })
     
     if (process.env.PORT) {
@@ -179,7 +179,7 @@ async function createCryptoCompareStreamer() {
         let tick = JSON.parse(data)
 
         if(tick.TYPE == 5) {
-            // console.log(tick)
+            console.log(tick)
             if (tick.PRICE) { // If the price didn't change then the PRICE is not included in the json object
     
                 let pair = tick.FROMSYMBOL +"~"+ tick.TOSYMBOL
