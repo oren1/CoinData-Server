@@ -117,7 +117,7 @@ const updateNotificationStatus = async (req,res) => {
     Notification.findOneAndUpdate({_id: req.body.id}, {status: req.body.status}, {new: true}, async (err, notification) => {
 
             if (err) res.json(err)
-
+            notification.startTime = Date.now()
             if (oldNotification.status == NotificationStatus.DISABLED &&
                 notification.status == NotificationStatus.ENABLED) {
 
@@ -427,7 +427,8 @@ const settings = async (req, res) => {
         maxAmountOfIntervalNotification: 2,
         maxAmountOfLimitNotification: 3,
         maxAmountOfPortfolios: 3,
-        fetchDataTimeInMiliSeconds: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
+        // fetchDataTimeInMiliSeconds: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
+        fetchDataTimeInMiliSeconds: Date.now() + (1000 * 60 * 5)
     }
 
     res.json({ 
