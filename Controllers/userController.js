@@ -429,7 +429,7 @@ const settings = async (req, res) => {
         maxAmountOfPortfolios: 3,
         fetchDataTimeInMiliSeconds: Date.now() + (1000 * 60 * 60 * 24) // fetch data once in 24 hours
     }
-
+    
     res.json({ 
         [ResponseKey.Success]: true,
         [ResponseKey.Message]: "Settings sent successfuly",

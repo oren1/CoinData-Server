@@ -179,7 +179,7 @@ async function createCryptoCompareStreamer() {
         let tick = JSON.parse(data)
 
         if(tick.TYPE == 5) {
-            console.log(tick)
+            // console.log(tick)
             if (tick.PRICE) { // If the price didn't change then the PRICE is not included in the json object
     
                 let pair = tick.FROMSYMBOL +"~"+ tick.TOSYMBOL
