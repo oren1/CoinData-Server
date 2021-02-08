@@ -321,6 +321,9 @@ function timeIntervalNotificationLogic() {
             if (timeElapsed >= notification.interval) {
                
                 User.findById(notification.userId, (err,user) => {
+                    
+                    if (err) return console.log(err)
+                    if (user == null) return console.log(`user with id ${notification.userId} doesn't exist`) 
 
                     let pair = notification.getPair()
                     redisManager.getPrice(pair,notification.exchange).
