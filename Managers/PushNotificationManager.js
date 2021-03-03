@@ -15,7 +15,7 @@ var options = {
       keyId: "63GXP94F68",
       teamId: "B9ZZD6JN8K"
     },
-    production: production
+    production: production,
   }
   
   var apnProvider = new apn.Provider(options)
@@ -33,11 +33,11 @@ function sendNotification(collapseId,deviceToken,message) {
         notification.topic = "ZZ.ZZBitRate.app"
         notification.priority = 10
         notification.collapseId = collapseId
-
+        
         apnProvider.send(notification, deviceToken).then( (result) => {
             if (result.failed.length > 0) {
-              console.log(result.failed[0].response)
-
+              // console.log(result.failed[0].response)
+              console.log(result.failed[0])
             }
             else {
               console.log(result)
