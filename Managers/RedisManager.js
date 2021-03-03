@@ -260,11 +260,19 @@ async function addToSubscriptions(member) {
             if (err) reject(err)
             if (number == "1") {
 
+                let sub = `5~${member}`
+                if (!member.includes("CCCAGG")) {
+                    sub = `2~${member}`
+                }
+
                 // subsribe to crypto compare 
                 var subRequest = {
                     "action": "SubAdd",
-                    "subs": [`5~${member}`]
+                    "subs": [sub]
                 }
+
+                console.log(subRequest)
+
                 ccStreamer.send(JSON.stringify(subRequest)) 
             }
             resolve(number)  
@@ -290,11 +298,18 @@ async function removeFromSubscriptions(member) {
         redisClient.srem("subscriptions",member, (err, number) => {
             if (err) reject(err)
 
+            let sub = `5~${member}`
+            if (!member.includes("CCCAGG")) {
+                sub = `2~${member}`
+            }
             // remove from crypto compare 
             var subRequest = {
                 "action": "SubRemove",
-                "subs": [`5~${member}`]
+                "subs": [sub]
             }
+
+            console.log(subRequest)
+
             ccStreamer.send(JSON.stringify(subRequest))
             resolve(number)  
         })

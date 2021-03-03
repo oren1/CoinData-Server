@@ -130,8 +130,9 @@ async function createCryptoCompareStreamer() {
         
     ccStreamer.addEventListener('open', () => {
             console.log("ccStreamer connected")
-            if (redisManager != null) { // if this is the first time that the streamer is initialized then the
-                // redisManager will be null and we call 'buildRedisMap' from the 'initiateServer' method
+            if (redisManager != null) { // If the 'redisManager' exists then the server wasn't initiated for the first time or after
+            // a crash. the 'open' message of the streamer was sent because of a restart of the streamer occured so we need to build 
+            // the redis map and resubscribe to the currently active notifications subscription strings.
                 buildRedisMap(ccStreamer)
             }
             resolve(ccStreamer)        
@@ -178,7 +179,7 @@ async function createCryptoCompareStreamer() {
         let data = json["data"]
         let tick = JSON.parse(data)
 
-        if(tick.TYPE == 5) {
+        if(tick.TYPE == 5 || tick.TYPE == 2) {
             // console.log(tick)
             if (tick.PRICE) { // If the price didn't change then the PRICE is not included in the json object
     
@@ -243,7 +244,8 @@ function limitNotificationLogic(tick) {
                         minimumFractionDigits: 2, 
                         maximumFractionDigits: 2}).format(notification.limit)
 
-                    let message = `${notification.fsym}/${notification.tsym} price is now more than ${formattedLimit}`
+                    let exchange = (notification.exchange == "CCCAGG") ? "Global Average" : notification.exchange
+                    let message = `${notification.fsym}/${notification.tsym} price is now more than ${formattedLimit} on ${exchange}`
                     sendPriceLimitNotification(notification,message)
                 }
             }
@@ -254,8 +256,9 @@ function limitNotificationLogic(tick) {
                         style: 'decimal',
                         minimumFractionDigits: 2, 
                         maximumFractionDigits: 2}).format(notification.limit)
-
-                    let message = `${notification.fsym}/${notification.tsym} price is now less than ${formattedLimit}`
+                    
+                    let exchange = (notification.exchange == "CCCAGG") ? "Global Average" : notification.exchange
+                    let message = `${notification.fsym}/${notification.tsym} price is now less than ${formattedLimit} on ${exchange}` 
                     sendPriceLimitNotification(notification,message)
 
             }
@@ -330,7 +333,8 @@ function timeIntervalNotificationLogic() {
                             minimumFractionDigits: 2, 
                             maximumFractionDigits: 2}).format(price)
 
-                        let message = `${notification.fsym}/${notification.tsym} is now ${formattedPrice}`
+                        let exchange = (notification.exchange == "CCCAGG") ? "Global Average" : notification.exchange
+                        let message = `${notification.fsym}/${notification.tsym} is now ${formattedPrice} on ${exchange}`
                         let collapseId = notification._id
                         PushNotificationManager.sendNotification(collapseId,user.token,message)
                     })
@@ -347,6 +351,7 @@ function timeIntervalNotificationLogic() {
         })
     })
 }
+
 function sendRepeatedPriceLimitNotification(notification) {
   
     let message = null
